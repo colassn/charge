@@ -469,7 +469,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const userConfig = {
             apiKey: "AIzaSyBrR4LBM2GA9vWQVR2KeQu4YFgHJXSYsNE",
@@ -1184,14 +1184,14 @@ service cloud.firestore {<br>
                     lastCalcPct: currentStats.estPct
                 };
 
-                // 處理副裝置資料寫入
+                // 處理副裝置資料寫入：若關閉則徹底清除雲端欄位
                 const device2Container = document.getElementById('device2Container_edit');
                 if (!device2Container.classList.contains('hidden')) {
                     updateData.cable2 = document.getElementById('editRentalCable2').value;
                     updateData.device2 = document.getElementById('editRentalDevice2').value;
                 } else {
-                    updateData.cable2 = ''; 
-                    updateData.device2 = '';
+                    updateData.cable2 = deleteField(); 
+                    updateData.device2 = deleteField();
                 }
 
                 if (isAdmin) {
