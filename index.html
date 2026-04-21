@@ -170,6 +170,52 @@
         </div>
     </main>
 
+    <!-- Modals -->
+
+    <!-- Edit Active Rental Modal -->
+    <div id="editRentalModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-darkCard border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold text-center text-white mb-1">修改租借資訊</h3>
+            <p id="edit-rental-user" class="text-center text-gray-400 text-sm mb-4">--</p>
+            
+            <form id="editRentalForm" class="space-y-4">
+                <input type="hidden" id="editRentalId">
+                <input type="hidden" id="editRentalStartTime">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">線材類型</label>
+                        <button type="button" onclick="openEditCableSelect()" id="btnEditRentalCable" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-left text-sm flex justify-between items-center focus:outline-none focus:border-mi transition-colors">
+                            <span>--</span>
+                            <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+                        </button>
+                        <input type="hidden" id="editRentalCable" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">充電裝置</label>
+                        <button type="button" onclick="openEditDeviceSelect()" id="btnEditRentalDevice" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-left text-sm flex justify-between items-center focus:outline-none focus:border-mi transition-colors">
+                            <span>--</span>
+                            <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+                        </button>
+                        <input type="hidden" id="editRentalDevice" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">校準當前實時電量 (%)</label>
+                    <input type="number" id="editRentalPct" min="0" max="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-mi text-2xl font-bold text-center" required>
+                    <p class="text-[10px] text-gray-500 mt-1 text-center">系統會自動微調進度條以對齊此數值</p>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeEditRentalModal()" class="flex-1 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold">取消</button>
+                    <button type="submit" class="flex-1 py-3 rounded-lg bg-mi hover:bg-miDark text-white font-bold shadow-lg shadow-mi/30">確認修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Return Modal -->
     <div id="returnModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm transition-all duration-300">
         <div class="bg-darkCard border border-mi rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <h3 class="text-xl font-bold text-center text-white mb-1">歸還結算</h3>
@@ -242,7 +288,6 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration
         const userConfig = {
             apiKey: "AIzaSyBrR4LBM2GA9vWQVR2KeQu4YFgHJXSYsNE",
             authDomain: "charge-d37c0.firebaseapp.com",
@@ -259,7 +304,6 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'mi-powerbank-app';
 
-        // State Memory
         let activeRentals = [];
         let rentalHistory = [];
         let recentUsers = []; 
@@ -272,10 +316,8 @@
         const docBattery = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'batteryState');
         const docUsers = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'recentUsers');
 
-        // --- Drain Rate Engine (% per minute) ---
-        // Based on 25000mAh. 1% = 250mAh.
         const DRAIN_RATES = {
-            '手提電腦': 0.15, // High power (e.g., 40W+) -> ~0.15% per min
+            '手提電腦': 0.15,
             '平板 (iPad)': 0.08, 
             '平板 (Android)': 0.08,
             '手機 (iPhone)': 0.05, 
@@ -351,8 +393,6 @@
             setTimeout(() => { document.getElementById('lendPct').value = currentBattery; }, 500);
         }
 
-        // --- Core UI Updates ---
-
         function updateDashboard() {
             const batText = document.getElementById('current-battery-text');
             const statusCard = document.getElementById('battery-status-card');
@@ -391,12 +431,11 @@
             document.getElementById('lendUser').value = name;
         };
 
-        // --- Live Tracker Engine ---
         function calculateLiveStats(rental) {
             const now = new Date();
             const startTime = new Date(rental.startTime);
             let diffMins = (now - startTime) / 60000;
-            if(diffMins < 0) diffMins = 0; // Prevent future dates bugs
+            if(diffMins < 0) diffMins = 0; 
 
             const rate = DRAIN_RATES[rental.device] || 0.05;
             const consumed = diffMins * rate;
@@ -405,7 +444,9 @@
 
             return {
                 estPct: currentEst,
-                consumed: consumed
+                consumed: consumed,
+                diffMins: diffMins,
+                rate: rate
             };
         }
 
@@ -424,11 +465,9 @@
                 if(r.device.includes('電腦')) devIcon = 'fa-laptop';
                 if(r.device.includes('手錶')) devIcon = 'fa-stopwatch';
 
-                // Initial Calc
                 const stats = calculateLiveStats(r);
                 const displayPct = stats.estPct.toFixed(1);
                 
-                // Color coding
                 let barColor = 'bg-green-500';
                 if(stats.estPct < 20) barColor = 'bg-red-500';
                 else if(stats.estPct < 50) barColor = 'bg-orange-500';
@@ -461,9 +500,14 @@
                     </div>
 
                     <div class="flex justify-between items-center relative z-10">
-                        <button onclick="window.deleteActiveRental('${r.id}')" class="text-gray-500 hover:text-red-400 transition-colors p-2 -ml-2" title="取消借出">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
-                        </button>
+                        <div class="flex gap-1 -ml-2">
+                            <button onclick="window.openEditRentalModal('${r.id}')" class="text-gray-500 hover:text-blue-400 transition-colors p-2" title="修改裝置及校準電量">
+                                <i class="fa-solid fa-pen-to-square text-sm"></i>
+                            </button>
+                            <button onclick="window.deleteActiveRental('${r.id}')" class="text-gray-500 hover:text-red-400 transition-colors p-2" title="取消借出">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
                         <button onclick="window.openReturnModal('${r.id}')" class="bg-white hover:bg-gray-200 text-black px-5 py-2 rounded-lg font-bold text-sm shadow-lg transition-transform active:scale-95">
                             歸還結算
                         </button>
@@ -488,13 +532,12 @@
                         pctEl.innerText = stats.estPct.toFixed(1) + '%';
                         barEl.style.width = stats.estPct + '%';
                         
-                        // Update color dynamically
                         if(stats.estPct < 20) barEl.className = 'h-full bg-red-500 bat-progress';
                         else if(stats.estPct < 50) barEl.className = 'h-full bg-orange-500 bat-progress';
                         else barEl.className = 'h-full bg-green-500 bat-progress';
                     }
                 });
-            }, 10000); // Update every 10 seconds for smooth but not heavy load
+            }, 10000); 
         }
 
         function renderHistory() {
@@ -532,8 +575,6 @@
                 </div>`;
             }).join('');
         }
-
-        // --- Firebase Writes ---
 
         async function updateRecentUsers(newName) {
             const name = newName.trim();
@@ -584,11 +625,71 @@
             }
         };
 
+        // --- Edit Rental Logic ---
+        window.openEditRentalModal = function(id) {
+            const rental = activeRentals.find(r => r.id === id);
+            if(!rental) return;
+
+            document.getElementById('editRentalId').value = rental.id;
+            document.getElementById('editRentalStartTime').value = rental.startTime;
+            document.getElementById('edit-rental-user').innerText = `使用者: ${rental.user}`;
+            
+            window.setEditCableSelect(rental.cable || 'C to C (快充)');
+            window.setEditDeviceSelect(rental.device || '手機 (iPhone)');
+
+            const stats = calculateLiveStats(rental);
+            document.getElementById('editRentalPct').value = Math.round(stats.estPct);
+
+            document.getElementById('editRentalModal').classList.remove('hidden');
+        };
+
+        window.closeEditRentalModal = () => document.getElementById('editRentalModal').classList.add('hidden');
+
+        document.getElementById('editRentalForm').onsubmit = async function(e) {
+            e.preventDefault();
+            if(!currentUser) return;
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 修改中...';
+
+            try {
+                const id = document.getElementById('editRentalId').value;
+                const newCable = document.getElementById('editRentalCable').value;
+                const newDevice = document.getElementById('editRentalDevice').value;
+                const newEstPct = parseInt(document.getElementById('editRentalPct').value);
+                const startTimeStr = document.getElementById('editRentalStartTime').value;
+
+                // Smart Recalculation: Adjust the origin (startPct) so the line passes through the user's new estimated Pct
+                const now = new Date();
+                const startTime = new Date(startTimeStr);
+                let diffMins = (now - startTime) / 60000;
+                if(diffMins < 0) diffMins = 0;
+
+                const newRate = DRAIN_RATES[newDevice] || 0.05;
+                const consumed = diffMins * newRate;
+                let newStartPct = newEstPct + consumed;
+                if(newStartPct > 100) newStartPct = 100; // Cap at 100%
+
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeRentals', id), {
+                    cable: newCable,
+                    device: newDevice,
+                    startPct: newStartPct 
+                }, { merge: true });
+
+                window.closeEditRentalModal();
+            } catch(err) {
+                console.error(err);
+                alert("修改失敗！");
+            } finally {
+                btn.innerHTML = '確認修改';
+            }
+        };
+
+
         window.openReturnModal = function(id) {
             const rental = activeRentals.find(r => r.id === id);
             if(!rental) return;
 
-            // Calculate live estimate for pre-filling
             const stats = calculateLiveStats(rental);
             const estPct = Math.round(stats.estPct);
 
@@ -599,7 +700,7 @@
             document.getElementById('return-modal-user').innerText = `正在歸還: ${rental.user}`;
             document.getElementById('return-modal-est').innerText = estPct + '%';
             
-            document.getElementById('returnPct').value = estPct; // Pre-fill with estimate!
+            document.getElementById('returnPct').value = estPct; 
 
             document.getElementById('returnModal').classList.remove('hidden');
         };
@@ -622,7 +723,7 @@
             try {
                 const id = document.getElementById('returnId').value;
                 const startTimeStr = document.getElementById('returnStartTime').value;
-                const fullEndDateStr = new Date().toISOString(); // Real time of return
+                const fullEndDateStr = new Date().toISOString(); 
                 
                 await addDoc(colHistory, {
                     type: 'use',
@@ -752,11 +853,16 @@
         window.handleSelect = function(value, callbackName) {
             if(callbackName === 'setCable') window.setCableSelect(value);
             if(callbackName === 'setDevice') window.setDeviceSelect(value);
+            if(callbackName === 'setEditCable') window.setEditCableSelect(value);
+            if(callbackName === 'setEditDevice') window.setEditDeviceSelect(value);
             window.closeSelectModal();
         };
 
         window.openCableSelect = () => window.openSelectModal('選擇線材類型', cableOptions, document.getElementById('lendCable').value, 'setCable');
         window.openDeviceSelect = () => window.openSelectModal('選擇充電裝置', deviceOptions, document.getElementById('lendDevice').value, 'setDevice');
+        
+        window.openEditCableSelect = () => window.openSelectModal('修改線材類型', cableOptions, document.getElementById('editRentalCable').value, 'setEditCable');
+        window.openEditDeviceSelect = () => window.openSelectModal('修改充電裝置', deviceOptions, document.getElementById('editRentalDevice').value, 'setEditDevice');
 
         window.setCableSelect = (val) => {
             document.getElementById('lendCable').value = val;
@@ -765,6 +871,15 @@
         window.setDeviceSelect = (val) => {
             document.getElementById('lendDevice').value = val;
             document.getElementById('btnLendDevice').querySelector('span').innerText = val;
+        };
+        
+        window.setEditCableSelect = (val) => {
+            document.getElementById('editRentalCable').value = val;
+            document.getElementById('btnEditRentalCable').querySelector('span').innerText = val;
+        };
+        window.setEditDeviceSelect = (val) => {
+            document.getElementById('editRentalDevice').value = val;
+            document.getElementById('btnEditRentalDevice').querySelector('span').innerText = val;
         };
 
         function formatTimeOnly(isoString) {
