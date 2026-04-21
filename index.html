@@ -78,17 +78,19 @@
         </div>
     </nav>
 
-    <section class="pt-32 pb-12 sm:pt-40 sm:pb-20 text-center max-w-7xl mx-auto px-4 relative">
+    <section id="hero-section" class="pt-32 pb-12 sm:pt-40 sm:pb-20 text-center max-w-7xl mx-auto px-4 relative transition-all duration-500">
         <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[80vw] h-[40vh] bg-mi/20 rounded-full blur-[120px] pointer-events-none -z-10"></div>
         
-        <h2 class="text-mi font-bold tracking-[0.3em] text-xs sm:text-sm mb-4 uppercase">25000mAh 212W Power Bank</h2>
-        <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-4 leading-tight">
-            極致效能，<br class="sm:hidden"/>實時掌控。
-        </h1>
-        <p class="text-gray-400 text-sm sm:text-base max-w-xl mx-auto mb-12">智能監測每一滴電量流向，專業級設備保養系統。</p>
+        <div id="hero-promo-text" class="transition-opacity duration-500">
+            <h2 class="text-mi font-bold tracking-[0.3em] text-xs sm:text-sm mb-4 uppercase">25000mAh 212W Power Bank</h2>
+            <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tighter mb-4 leading-tight">
+                極致效能，<br class="sm:hidden"/>實時掌控。
+            </h1>
+            <p class="text-gray-400 text-sm sm:text-base max-w-xl mx-auto mb-12">智能監測每一滴電量流向，專業級設備保養系統。</p>
+        </div>
 
         <div class="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20">
-            <div class="relative w-48 sm:w-64 lg:w-80 group">
+            <div id="hero-promo-img" class="relative w-48 sm:w-64 lg:w-80 group transition-opacity duration-500">
                 <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10"></div>
                 <img src="image.jpg" alt="Xiaomi Powerbank" class="w-full object-contain rounded-3xl transform group-hover:scale-105 transition-transform duration-700 shadow-2xl" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22 viewBox=%220 0 300 300%22%3E%3Crect width=%22300%22 height=%22300%22 fill=%22%231c1c1e%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23ff6900%22 font-size=%2224%22 font-family=%22Arial%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3EPower Bank%3C/text%3E%3C/svg%3E'">
             </div>
@@ -115,12 +117,14 @@
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
+            <!-- Left Column: Actions & Welcome -->
             <div class="lg:col-span-5 space-y-6">
                 
+                <!-- Lend Form (Admin Only) -->
                 <div id="lend-form-container" class="official-card p-6 sm:p-8 hidden">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold text-white tracking-wide"><i class="fa-solid fa-arrow-right-from-bracket text-mi mr-2"></i>手動登記借出</h2>
-                        <span class="text-[10px] bg-mi/20 text-mi px-2 py-1 rounded-md font-bold border border-mi/30">管理員模式</span>
+                        <h2 class="text-xl font-bold text-white tracking-wide"><i class="fa-solid fa-user-shield text-mi mr-2"></i>管理員授權登記</h2>
+                        <span class="text-[10px] bg-mi/20 text-mi px-2 py-1 rounded-md font-bold border border-mi/30">專業模式</span>
                     </div>
                     
                     <form id="lendForm" class="space-y-5">
@@ -187,7 +191,7 @@
                                 <input type="number" id="lendPct" min="0" max="100" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none font-bold" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-400 mb-1.5">借出時間</label>
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">手動指定時間</label>
                                 <input type="time" id="lendTime" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none font-mono text-sm" required>
                             </div>
                         </div>
@@ -198,66 +202,77 @@
                     </form>
                 </div>
 
-                <div id="guest-welcome-container" class="official-card p-6 sm:p-8 hidden flex-col justify-center">
-                    <div class="mb-5 border-b border-white/5 pb-5">
-                        <div class="w-12 h-12 bg-cardHover rounded-full flex items-center justify-center mb-3 border border-white/5">
-                            <i class="fa-solid fa-shield-heart text-xl text-mi"></i>
+                <!-- Guest Minimalist Quick Form -->
+                <div id="guest-welcome-container" class="official-card p-6 sm:p-10 hidden flex-col justify-center relative overflow-hidden">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-mi/10 blur-[50px] rounded-full pointer-events-none"></div>
+
+                    <div class="text-center mb-8 relative z-10">
+                        <div class="w-16 h-16 bg-gradient-to-br from-gray-800 to-black border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(255,105,0,0.15)]">
+                            <i class="fa-solid fa-bolt-lightning text-3xl text-mi"></i>
                         </div>
-                        <h2 class="text-xl font-bold text-white mb-2 tracking-wide">自助借用與保養登記</h2>
-                        <p class="text-sm text-gray-400 leading-relaxed text-justify">
-                            為保護並延長電池壽命，本系統已啟用實時電量監測。<br>此為訪客模式，請在下方輸入姓名並選擇裝置，系統將自動擷取時間並啟動監測。<br><br>
-                            <span class="text-mi font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i> 注意事項：</span><br>
-                            1. <strong class="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">保護尿袋壽命：必須在電量低於 30% 前歸還！</strong><br>
-                            2. 若充電寶正由他人使用，請先於右側點擊「歸還結算」，再新增您的紀錄。<br>
-                            3. 填寫的「當前電量」必須與實機屏幕顯示相符（誤差限於 ±15% 內）。
-                        </p>
+                        <h2 class="text-2xl font-black text-white mb-2 tracking-tight">極速自助登記</h2>
+                        <p class="text-sm text-gray-400">只需 3 步，系統將自動記錄時間並啟動監測。</p>
+                    </div>
+
+                    <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-6 flex items-start sm:items-center gap-3 relative z-10">
+                        <i class="fa-solid fa-circle-exclamation text-red-500 text-lg mt-0.5 sm:mt-0"></i>
+                        <div class="text-xs text-red-200 leading-relaxed">
+                            <strong class="text-red-400 text-sm">護電警告：</strong><br class="sm:hidden"/>為保護電池壽命，請務必在電量跌至 <strong class="text-white text-sm bg-red-500/50 px-1 rounded">30%</strong> 前歸還！
+                        </div>
                     </div>
                     
-                    <form id="guestLendForm" class="space-y-5">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-400 mb-1.5">您的姓名</label>
-                            <input type="text" id="guestLendUser" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none" placeholder="例如: 阿明" required autocomplete="off">
-                            <div id="recentUsersContainerGuest" class="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1 hidden"></div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
+                    <form id="guestLendForm" class="space-y-4 relative z-10">
+                        <div class="bg-black/50 p-5 rounded-2xl border border-white/5 space-y-5 shadow-inner">
+                            
+                            <!-- 01. Name -->
                             <div>
-                                <label class="block text-xs font-medium text-gray-400 mb-1.5">主要充電裝置</label>
-                                <button type="button" onclick="openGuestDeviceSelect()" id="btnGuestLendDevice" class="w-full official-input rounded-2xl px-4 py-3.5 text-mi font-bold text-left text-sm flex justify-between items-center focus:outline-none">
+                                <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest"><span class="text-mi mr-1">01.</span> 您的姓名</label>
+                                <input type="text" id="guestLendUser" class="w-full bg-transparent border-b border-gray-700 focus:border-mi px-2 py-2 text-white text-xl font-bold focus:outline-none transition-colors placeholder-gray-700" placeholder="點擊輸入名字..." required autocomplete="off">
+                                <div id="recentUsersContainerGuest" class="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1 hidden"></div>
+                            </div>
+
+                            <!-- 02. Device -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest"><span class="text-mi mr-1">02.</span> 充電裝置</label>
+                                <button type="button" onclick="openGuestDeviceSelect()" id="btnGuestLendDevice" class="w-full bg-cardHover border border-white/5 rounded-xl px-4 py-4 text-white font-bold text-left text-lg flex justify-between items-center focus:outline-none hover:bg-gray-700 transition-colors">
                                     <span class="truncate pr-2">手機 (iPhone)</span>
-                                    <i class="fa-solid fa-chevron-down text-mi/50 text-[10px]"></i>
+                                    <i class="fa-solid fa-chevron-down text-gray-500 text-sm"></i>
                                 </button>
                                 <input type="hidden" id="guestLendDevice" value="手機 (iPhone)" required>
                             </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-400 mb-1.5">當前真實電量 (%)</label>
-                                <input type="number" id="guestLendPct" min="0" max="100" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none font-bold text-center" required>
-                            </div>
-                        </div>
 
-                        <!-- 裝置 2 區塊 (訪客) -->
-                        <div class="text-right -mt-2">
-                            <button type="button" id="btnAddDevice2_guest" onclick="toggleDevice2('guest')" class="text-xs text-mi font-bold hover:text-white transition-colors"><i class="fa-solid fa-plus mr-1"></i>新增第二裝置</button>
-                        </div>
-                        <div id="device2Container_guest" class="hidden grid-cols-1 gap-4 bg-black/40 p-4 rounded-2xl border border-dashed border-white/10 relative mt-0">
-                            <button type="button" onclick="toggleDevice2('guest')" class="absolute -top-3 -right-2 w-7 h-7 bg-cardHover rounded-full text-gray-400 hover:text-red-500 flex items-center justify-center border border-white/10 shadow-lg"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                            <!-- 03. Battery -->
                             <div>
-                                <label class="block text-xs font-medium text-gray-400 mb-1.5">副裝置</label>
-                                <button type="button" onclick="openGuestDeviceSelect2()" id="btnGuestLendDevice2" class="w-full official-input rounded-2xl px-4 py-3.5 text-white font-bold text-left text-sm flex justify-between items-center focus:outline-none">
+                                <div class="flex justify-between items-end mb-2">
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest"><span class="text-mi mr-1">03.</span> 當前電量 (%)</label>
+                                    <span class="text-[9px] text-gray-600">誤差請保持在 ±15% 內</span>
+                                </div>
+                                <input type="number" id="guestLendPct" min="0" max="100" class="w-full bg-cardHover border border-white/5 rounded-xl px-4 py-4 text-white text-center text-3xl font-black font-mono focus:outline-none focus:border-mi transition-colors" required>
+                            </div>
+
+                            <!-- Subtle Second Device Button -->
+                            <div class="text-right pt-2 border-t border-white/5 mt-2">
+                                <button type="button" id="btnAddDevice2_guest" onclick="toggleDevice2('guest')" class="text-[11px] text-gray-500 hover:text-mi font-medium transition-colors"><i class="fa-solid fa-plus mr-1"></i>同時充兩部機？</button>
+                            </div>
+                            <div id="device2Container_guest" class="hidden flex-col gap-2 bg-black/40 p-4 rounded-xl border border-dashed border-white/10 relative mt-2">
+                                <button type="button" onclick="toggleDevice2('guest')" class="absolute top-2 right-2 w-6 h-6 rounded-full bg-cardHover flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-xs"></i></button>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">副裝置</label>
+                                <button type="button" onclick="openGuestDeviceSelect2()" id="btnGuestLendDevice2" class="w-full bg-card border border-white/5 rounded-lg px-3 py-3 text-gray-300 font-bold text-left text-sm flex justify-between items-center focus:outline-none">
                                     <span class="truncate pr-2">手機 (Android)</span>
-                                    <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
+                                    <i class="fa-solid fa-chevron-down text-gray-600 text-[10px]"></i>
                                 </button>
                                 <input type="hidden" id="guestLendDevice2" value="手機 (Android)">
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full bg-mi hover:bg-miDark text-white font-bold py-4 rounded-2xl transition-all mt-2 text-sm tracking-wide shadow-[0_0_20px_rgba(255,105,0,0.3)]">
-                            <i class="fa-solid fa-bolt-lightning mr-1"></i> 一鍵登記
+                        <button type="submit" class="w-full bg-gradient-to-r from-mi to-orange-500 hover:from-miDark hover:to-orange-600 text-white font-black text-lg py-5 rounded-2xl transition-all shadow-[0_0_30px_rgba(255,105,0,0.4)] hover:shadow-[0_0_40px_rgba(255,105,0,0.6)] hover:scale-[1.02] transform mt-2 flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-satellite-dish animate-pulse"></i> 一鍵啟動監測
                         </button>
                     </form>
                 </div>
             </div>
 
+            <!-- Right Column: Active & History -->
             <div class="lg:col-span-7 space-y-8">
                 
                 <div>
@@ -273,7 +288,7 @@
                     </div>
                 </div>
 
-                <div class="pt-4">
+                <div id="history-section-wrapper" class="pt-4 transition-opacity duration-500">
                     <div class="flex justify-between items-center mb-5">
                         <h2 class="text-lg font-bold text-gray-500 tracking-wide">歷史結算報告</h2>
                         <span id="stat-total" class="text-[10px] bg-card px-3 py-1 rounded-full text-gray-400 border border-white/5 font-mono">0 LOGS</span>
@@ -358,9 +373,9 @@
                 </div>
 
                 <div id="editRentalPctContainer" class="bg-black/50 p-4 rounded-2xl border border-white/5">
-                    <label class="block text-xs font-medium text-gray-400 mb-2 text-center">校準當前實時電量 (%)</label>
+                    <label class="block text-xs font-medium text-gray-400 mb-2 text-center">校準當前實機電量 (%)</label>
                     <input type="number" id="editRentalPct" min="0" max="100" class="w-full bg-transparent border-none text-white focus:outline-none text-4xl font-black text-center font-mono" required>
-                    <p class="text-[10px] text-gray-500 mt-2 text-center">輸入實機電量，系統將自動修正進度條對齊此數值</p>
+                    <p class="text-[10px] text-gray-500 mt-2 text-center">系統將自動修正進度條以對齊此數值</p>
                 </div>
 
                 <div class="flex gap-3 pt-2">
@@ -549,11 +564,11 @@
             const container = document.getElementById(`device2Container_${mode}`);
             if (container.classList.contains('hidden')) {
                 container.classList.remove('hidden');
-                container.classList.add('grid');
+                container.classList.add(mode === 'guest' ? 'flex' : 'grid');
                 if (btn) btn.classList.add('hidden');
             } else {
                 container.classList.add('hidden');
-                container.classList.remove('grid');
+                container.classList.remove('flex', 'grid');
                 if (btn) btn.classList.remove('hidden');
                 // 關閉時重置數值，避免錯誤提交
                 if(mode === 'lend') {
@@ -699,14 +714,39 @@ service cloud.firestore {<br>
             const btnEditBattery = document.getElementById('btn-edit-battery');
             const editDevice2ContainerWrapper = document.getElementById('editDevice2ContainerWrapper');
             
+            const heroPromoText = document.getElementById('hero-promo-text');
+            const heroPromoImg = document.getElementById('hero-promo-img');
+            const historySectionWrapper = document.getElementById('history-section-wrapper');
+            const heroSection = document.getElementById('hero-section');
+            
             if (isAdmin) {
                 if(lendFormContainer) lendFormContainer.classList.remove('hidden');
                 if(guestWelcomeContainer) guestWelcomeContainer.classList.add('hidden');
                 if(btnEditBattery) btnEditBattery.classList.remove('hidden');
+                if(editDevice2ContainerWrapper) editDevice2ContainerWrapper.classList.remove('hidden');
+                
+                // 顯示宣傳及歷史區塊，並恢復原有的上下留白
+                if(heroPromoText) heroPromoText.classList.remove('hidden');
+                if(heroPromoImg) heroPromoImg.classList.remove('hidden');
+                if(historySectionWrapper) historySectionWrapper.classList.remove('hidden');
+                if(heroSection) {
+                    heroSection.classList.add('sm:pt-40', 'sm:pb-20');
+                    heroSection.classList.remove('pt-24', 'pb-8', 'sm:pt-28', 'sm:pb-10');
+                }
             } else {
                 if(lendFormContainer) lendFormContainer.classList.add('hidden');
                 if(guestWelcomeContainer) guestWelcomeContainer.classList.remove('hidden');
                 if(btnEditBattery) btnEditBattery.classList.add('hidden');
+                if(editDevice2ContainerWrapper) editDevice2ContainerWrapper.classList.add('hidden');
+                
+                // 隱藏宣傳及歷史區塊，稍微縮小頂部留白令版面更緊湊
+                if(heroPromoText) heroPromoText.classList.add('hidden');
+                if(heroPromoImg) heroPromoImg.classList.add('hidden');
+                if(historySectionWrapper) historySectionWrapper.classList.add('hidden');
+                if(heroSection) {
+                    heroSection.classList.remove('sm:pt-40', 'sm:pb-20');
+                    heroSection.classList.add('pt-24', 'pb-8', 'sm:pt-28', 'sm:pb-10');
+                }
             }
         }
 
@@ -1041,7 +1081,6 @@ service cloud.firestore {<br>
                 await updateRecentUsers(user);
 
                 document.getElementById('lendUser').value = '';
-                // 如果有開啟第二裝置，重置並隱藏
                 if(!device2Container.classList.contains('hidden')) window.toggleDevice2('lend');
             } catch (err) {
                 console.error(err);
@@ -1184,7 +1223,7 @@ service cloud.firestore {<br>
                     lastCalcPct: currentStats.estPct
                 };
 
-                // 處理副裝置資料寫入：若關閉則徹底清除雲端欄位
+                // 處理副裝置資料寫入
                 const device2Container = document.getElementById('device2Container_edit');
                 if (!device2Container.classList.contains('hidden')) {
                     updateData.cable2 = document.getElementById('editRentalCable2').value;
@@ -1203,7 +1242,7 @@ service cloud.firestore {<br>
                 if(diffMins < 0) diffMins = 0;
                 
                 let newRate = DRAIN_RATES[newDevice] || 0.05;
-                if (updateData.device2) newRate += (DRAIN_RATES[updateData.device2] || 0.05); // 疊加第二部裝置耗電
+                if (updateData.device2) newRate += (DRAIN_RATES[updateData.device2] || 0.05);
 
                 if (newProtocol && PROTOCOL_RATES[newProtocol] !== null && PROTOCOL_RATES[newProtocol] !== undefined) {
                     newRate = Math.max(PROTOCOL_RATES[newProtocol], newRate);
@@ -1391,8 +1430,8 @@ service cloud.firestore {<br>
                     </p>
                 </div>
                 
-                <div class="pt-4 border-t border-white/5 text-right">
-                    <button onclick="window.clearTodayRecords()" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-5 py-3 rounded-xl text-xs font-bold transition-colors border border-red-500/30 shadow-lg flex items-center gap-2 ml-auto">
+                <div class="pt-4 border-t border-white/5 text-right flex justify-end">
+                    <button onclick="window.clearTodayRecords()" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-5 py-3 rounded-xl text-xs font-bold transition-colors border border-red-500/30 shadow-lg flex items-center gap-2">
                         <i class="fa-solid fa-calendar-times"></i> 一鍵清除今日紀錄 (開始新一天)
                     </button>
                 </div>
@@ -1408,18 +1447,15 @@ service cloud.firestore {<br>
                 todayStart.setHours(0,0,0,0);
                 const todayTime = todayStart.getTime();
                 
-                let count = 0;
                 for (const log of rentalHistory) {
                     if (log.timestamp >= todayTime) {
                         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rentalHistory', log.id));
-                        count++;
                     }
                 }
                 
                 window.closeAnalyticsModal();
             });
         };
-
 
         window.addChargeRecord = function() {
             if (!isAdmin) return;
@@ -1529,7 +1565,6 @@ service cloud.firestore {<br>
             if(callbackName === 'setEditCable') window.setEditCableSelect(value);
             if(callbackName === 'setEditDevice') window.setEditDeviceSelect(value);
             if(callbackName === 'setGuestDevice') window.setGuestDeviceSelect(value);
-            // 新增的 Callback
             if(callbackName === 'setCable2') window.setCableSelect2(value);
             if(callbackName === 'setDevice2') window.setDeviceSelect2(value);
             if(callbackName === 'setEditCable2') window.setEditCableSelect2(value);
