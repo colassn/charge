@@ -131,7 +131,7 @@
                 <!-- Lend Form (Admin Only) -->
                 <div id="lend-form-container" class="official-card p-6 sm:p-8 hidden">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold text-white tracking-wide"><i class="fa-solid fa-arrow-right-from-bracket text-mi mr-2"></i>登記借出</h2>
+                        <h2 class="text-xl font-bold text-white tracking-wide"><i class="fa-solid fa-arrow-right-from-bracket text-mi mr-2"></i>手動登記借出</h2>
                         <span class="text-[10px] bg-mi/20 text-mi px-2 py-1 rounded-md font-bold border border-mi/30">管理員模式</span>
                     </div>
                     
@@ -178,16 +178,47 @@
                     </form>
                 </div>
 
-                <!-- Guest Welcome Screen -->
-                <div id="guest-welcome-container" class="official-card p-8 text-center hidden flex-col justify-center min-h-[300px]">
-                    <div class="w-16 h-16 bg-cardHover rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
-                        <i class="fa-solid fa-link text-2xl text-mi"></i>
+                <!-- Guest Welcome Screen & Quick Form -->
+                <div id="guest-welcome-container" class="official-card p-6 sm:p-8 hidden flex-col justify-center">
+                    <div class="mb-5 border-b border-white/5 pb-5">
+                        <div class="w-12 h-12 bg-cardHover rounded-full flex items-center justify-center mb-3 border border-white/5">
+                            <i class="fa-solid fa-shield-heart text-xl text-mi"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-white mb-2 tracking-wide">自助借用與保養登記</h2>
+                        <p class="text-sm text-gray-400 leading-relaxed text-justify">
+                            為保護並延長電池壽命，本系統已啟用實時電量監測。<br>此為訪客模式，請在下方輸入姓名並選擇裝置，系統將自動擷取時間並啟動監測。<br><br>
+                            <span class="text-mi font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i> 注意事項：</span><br>
+                            1. 若充電寶正由他人使用，請先於右側點擊「歸還結算」，再新增您的紀錄。<br>
+                            2. 填寫的「當前電量」必須與實機屏幕顯示相符（誤差限於 ±15% 內）。
+                        </p>
                     </div>
-                    <h2 class="text-xl font-bold text-white mb-3">共享終端已連接</h2>
-                    <p class="text-sm text-gray-400 leading-relaxed max-w-sm mx-auto">
-                        此為訪客視圖。<br>
-                        請在右側監測區尋找您的設備，點擊<strong class="text-white mx-1">修改</strong>以校準耗電引擎，獲取精準的實時電量估算。
-                    </p>
+                    
+                    <form id="guestLendForm" class="space-y-5">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5">您的姓名</label>
+                            <input type="text" id="guestLendUser" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none" placeholder="例如: 阿明" required autocomplete="off">
+                            <div id="recentUsersContainerGuest" class="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1 hidden"></div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">充電裝置</label>
+                                <button type="button" onclick="openGuestDeviceSelect()" id="btnGuestLendDevice" class="w-full official-input rounded-2xl px-4 py-3.5 text-mi font-bold text-left text-sm flex justify-between items-center focus:outline-none">
+                                    <span class="truncate pr-2">手機 (iPhone)</span>
+                                    <i class="fa-solid fa-chevron-down text-mi/50 text-[10px]"></i>
+                                </button>
+                                <input type="hidden" id="guestLendDevice" value="手機 (iPhone)" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">當前真實電量 (%)</label>
+                                <input type="number" id="guestLendPct" min="0" max="100" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none font-bold text-center" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-mi hover:bg-miDark text-white font-bold py-4 rounded-2xl transition-all mt-2 text-sm tracking-wide shadow-[0_0_20px_rgba(255,105,0,0.3)]">
+                            <i class="fa-solid fa-bolt-lightning mr-1"></i> 一鍵登記
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -236,6 +267,11 @@
             <form id="editRentalForm" class="space-y-5">
                 <input type="hidden" id="editRentalId">
                 <input type="hidden" id="editRentalStartTime">
+
+                <div id="adminEditUserContainer" class="hidden">
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">借用人 (僅管理員可更改)</label>
+                    <input type="text" id="editRentalUser" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none" required autocomplete="off">
+                </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -323,7 +359,7 @@
                 <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
             </div>
             <h3 id="confirm-title" class="text-xl font-bold text-center text-white mb-2 tracking-tight">提示</h3>
-            <p id="confirm-msg" class="text-center text-gray-400 text-sm mb-8 leading-relaxed"></p>
+            <p id="confirm-msg" class="text-center text-gray-400 text-sm mb-8 leading-relaxed whitespace-pre-line"></p>
             <div class="flex gap-3">
                 <button id="confirm-btn-cancel" onclick="closeConfirmModal()" class="flex-1 py-3.5 rounded-2xl bg-cardHover text-white font-bold">取消</button>
                 <button id="confirm-btn-ok" class="flex-1 py-3.5 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold shadow-[0_0_15px_rgba(239,68,68,0.3)]">確定執行</button>
@@ -389,7 +425,8 @@
             '手機 (iPhone)': 0.05, 
             '手機 (Android)': 0.06,
             '手錶/耳機': 0.01,
-            '多部裝置': 0.12
+            '多部裝置': 0.12,
+            '其他': 0.08
         };
 
         // Modal Animation Helpers
@@ -564,7 +601,11 @@ service cloud.firestore {<br>
             const now = new Date();
             const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             document.getElementById('lendTime').value = timeString;
-            setTimeout(() => { document.getElementById('lendPct').value = currentBattery; }, 500);
+            setTimeout(() => { 
+                document.getElementById('lendPct').value = currentBattery; 
+                const guestPct = document.getElementById('guestLendPct');
+                if(guestPct) guestPct.value = currentBattery;
+            }, 500);
         }
 
         function updateDashboard() {
@@ -574,6 +615,8 @@ service cloud.firestore {<br>
             
             batText.innerText = currentBattery + '%';
             document.getElementById('lendPct').value = currentBattery;
+            const guestPct = document.getElementById('guestLendPct');
+            if(guestPct) guestPct.value = currentBattery;
             
             // Reset base classes for status card
             statusCard.className = "relative flex flex-col items-center justify-center w-56 h-56 sm:w-72 sm:h-72 rounded-full border-8 bg-black shadow-[0_0_50px_rgba(0,0,0,0.8)] transition-all duration-700 z-20 hover:scale-105 group"; 
@@ -594,33 +637,43 @@ service cloud.firestore {<br>
         }
 
         function renderRecentUsers() {
-            const container = document.getElementById('recentUsersContainer');
-            if (recentUsers.length > 0) {
-                container.classList.remove('hidden');
-                container.innerHTML = recentUsers.map(name => `
-                    <button type="button" onclick="window.fillUserName('${name}')" class="shrink-0 bg-card hover:bg-cardHover border border-white/5 text-gray-300 text-[11px] px-4 py-2 rounded-xl transition-all font-medium">
-                        ${name}
-                    </button>
-                `).join('');
-            } else {
-                container.classList.add('hidden');
-            }
+            const containers = [document.getElementById('recentUsersContainer'), document.getElementById('recentUsersContainerGuest')];
+            containers.forEach(container => {
+                if(!container) return;
+                if (recentUsers.length > 0) {
+                    container.classList.remove('hidden');
+                    container.innerHTML = recentUsers.map(name => `
+                        <button type="button" onclick="window.fillUserName('${name}')" class="shrink-0 bg-card hover:bg-cardHover border border-white/5 text-gray-300 text-[11px] px-4 py-2 rounded-xl transition-all font-medium">
+                            ${name}
+                        </button>
+                    `).join('');
+                } else {
+                    container.classList.add('hidden');
+                }
+            });
         }
 
-        window.fillUserName = function(name) { document.getElementById('lendUser').value = name; };
+        window.fillUserName = function(name) { 
+            const adminInput = document.getElementById('lendUser');
+            const guestInput = document.getElementById('guestLendUser');
+            if(adminInput) adminInput.value = name; 
+            if(guestInput) guestInput.value = name;
+        };
 
         function calculateLiveStats(rental) {
             const now = new Date();
-            const startTime = new Date(rental.startTime);
-            let diffMins = (now - startTime) / 60000;
+            const baseTime = rental.lastCalcTime ? new Date(rental.lastCalcTime) : new Date(rental.startTime);
+            const basePct = rental.lastCalcPct !== undefined ? rental.lastCalcPct : rental.startPct;
+
+            let diffMins = (now - baseTime) / 60000;
             if(diffMins < 0) diffMins = 0; 
 
             const rate = DRAIN_RATES[rental.device] || 0.05;
             const consumed = diffMins * rate;
-            let currentEst = rental.startPct - consumed;
+            let currentEst = basePct - consumed;
             if(currentEst < 0) currentEst = 0;
 
-            return { estPct: currentEst, consumed: consumed, diffMins: diffMins, rate: rate };
+            return { estPct: currentEst, consumed: rental.startPct - currentEst, diffMins: diffMins, rate: rate };
         }
 
         function renderActiveRentals() {
@@ -641,8 +694,9 @@ service cloud.firestore {<br>
                 const timeOnly = formatTimeOnly(r.startTime);
                 let devIcon = 'fa-mobile-screen';
                 if(r.device.includes('平板')) devIcon = 'fa-tablet-screen-button';
-                if(r.device.includes('電腦')) devIcon = 'fa-laptop';
-                if(r.device.includes('手錶')) devIcon = 'fa-stopwatch';
+                else if(r.device.includes('電腦')) devIcon = 'fa-laptop';
+                else if(r.device.includes('手錶')) devIcon = 'fa-stopwatch';
+                else if(r.device.includes('其他')) devIcon = 'fa-ellipsis';
 
                 const stats = calculateLiveStats(r);
                 const displayPct = stats.estPct.toFixed(1);
@@ -650,6 +704,9 @@ service cloud.firestore {<br>
                 let barColor = 'bg-green-500';
                 if(stats.estPct < 20) barColor = 'bg-red-500';
                 else if(stats.estPct < 50) barColor = 'bg-orange-500';
+
+                const latestChange = r.changeLogs && r.changeLogs.length > 0 ? r.changeLogs[r.changeLogs.length - 1] : null;
+                const changeHtml = latestChange ? `<div class="text-mi mt-1 flex items-center gap-1 bg-mi/10 w-max px-1.5 py-0.5 rounded border border-mi/20"><i class="fa-solid fa-code-merge text-[8px]"></i> ${formatTimeOnly(latestChange.time)} 更改為 ${latestChange.device}</div>` : '';
 
                 return `
                 <div class="official-card p-6 active-rental-card relative overflow-hidden group">
@@ -662,6 +719,7 @@ service cloud.firestore {<br>
                                 <div class="text-white font-bold text-lg leading-tight tracking-wide">${r.user}</div>
                                 <div class="text-xs text-gray-500 mt-1 font-medium">
                                     ${r.device} &nbsp;&middot;&nbsp; ${timeOnly} 開始 (${r.startPct}%)
+                                    ${changeHtml}
                                 </div>
                             </div>
                         </div>
@@ -774,7 +832,6 @@ service cloud.firestore {<br>
         }
 
         async function updateRecentUsers(newName) {
-            if (!isAdmin) return;
             const name = newName.trim();
             if (!name) return;
             let updatedNames = [...recentUsers];
@@ -784,6 +841,7 @@ service cloud.firestore {<br>
             await setDoc(docUsers, { names: updatedNames });
         }
 
+        // Admin Form Submit
         document.getElementById('lendForm').onsubmit = async function(e) {
             e.preventDefault();
             if(!currentUser || !isAdmin) return;
@@ -819,6 +877,47 @@ service cloud.firestore {<br>
             }
         };
 
+        // Guest Quick Form Submit
+        document.getElementById('guestLendForm').onsubmit = async function(e) {
+            e.preventDefault();
+            if(!currentUser) return;
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalHTML = btn.innerHTML;
+
+            const startPct = parseInt(document.getElementById('guestLendPct').value);
+
+            // Validation: Input cannot deviate by more than 15% from the system's current estimate
+            if (Math.abs(startPct - currentBattery) > 15) {
+                window.showConfirm('輸入電量偏差過大', `為確保監測準確，請輸入與實機屏幕相符的真實電量。\n\n系統預估當前約為 ${currentBattery}%，您輸入的數值誤差不得超過 ±15%。`, null);
+                return;
+            }
+
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 處理中...';
+
+            try {
+                const user = document.getElementById('guestLendUser').value;
+                const device = document.getElementById('guestLendDevice').value;
+                const cable = '未知 (訪客自助)'; 
+                const fullDateStr = new Date().toISOString(); 
+
+                await addDoc(colActive, {
+                    user: user, cable: cable, device: device, startPct: startPct,
+                    startTime: fullDateStr, timestamp: Date.now()
+                });
+
+                await setDoc(docBattery, { value: startPct });
+                await updateRecentUsers(user);
+
+                document.getElementById('guestLendUser').value = '';
+            } catch (err) {
+                console.error(err);
+                alert("儲存失敗！");
+            } finally {
+                btn.innerHTML = originalHTML;
+            }
+        };
+
         window.openEditRentalModal = function(id) {
             const rental = activeRentals.find(r => r.id === id);
             if(!rental) return;
@@ -826,18 +925,26 @@ service cloud.firestore {<br>
             document.getElementById('editRentalId').value = rental.id;
             document.getElementById('editRentalStartTime').value = rental.startTime;
             document.getElementById('edit-rental-user').innerText = `目標對象: ${rental.user}`;
+            document.getElementById('editRentalUser').value = rental.user;
             
             window.setEditCableSelect(rental.cable || 'C to C (快充)');
             window.setEditDeviceSelect(rental.device || '手機 (iPhone)');
 
             const pctContainer = document.getElementById('editRentalPctContainer');
+            const userContainer = document.getElementById('adminEditUserContainer');
+            const userDisplay = document.getElementById('edit-rental-user');
+
             if (isAdmin) {
                 pctContainer.classList.remove('hidden');
+                userContainer.classList.remove('hidden');
+                userDisplay.classList.add('hidden');
                 const stats = calculateLiveStats(rental);
                 document.getElementById('editRentalPct').value = Math.round(stats.estPct);
                 document.getElementById('editRentalPct').required = true;
             } else {
                 pctContainer.classList.add('hidden');
+                userContainer.classList.add('hidden');
+                userDisplay.classList.remove('hidden');
                 document.getElementById('editRentalPct').required = false;
             }
 
@@ -856,17 +963,24 @@ service cloud.firestore {<br>
 
             try {
                 const id = document.getElementById('editRentalId').value;
+                const rental = activeRentals.find(r => r.id === id);
                 const newCable = document.getElementById('editRentalCable').value;
                 const newDevice = document.getElementById('editRentalDevice').value;
                 
-                let updateData = { cable: newCable, device: newDevice };
+                const nowIso = new Date().toISOString();
+                const currentStats = calculateLiveStats(rental);
+                
+                let updateData = { 
+                    cable: newCable, 
+                    device: newDevice,
+                    lastCalcTime: nowIso,
+                    lastCalcPct: currentStats.estPct
+                };
 
                 if (isAdmin) {
+                    updateData.user = document.getElementById('editRentalUser').value;
                     const newEstPct = parseInt(document.getElementById('editRentalPct').value);
-                    const startTimeStr = document.getElementById('editRentalStartTime').value;
-                    const now = new Date();
-                    const startTime = new Date(startTimeStr);
-                    let diffMins = (now - startTime) / 60000;
+                    let diffMins = (new Date() - new Date(document.getElementById('editRentalStartTime').value)) / 60000;
                     if(diffMins < 0) diffMins = 0;
                     const newRate = DRAIN_RATES[newDevice] || 0.05;
                     const consumed = diffMins * newRate;
@@ -874,6 +988,12 @@ service cloud.firestore {<br>
                     if(newStartPct > 100) newStartPct = 100;
                     updateData.startPct = newStartPct;
                 }
+
+                const changeLogs = rental.changeLogs || [];
+                changeLogs.push({
+                    time: nowIso, device: newDevice, cable: newCable, by: isAdmin ? 'Admin' : 'Guest'
+                });
+                updateData.changeLogs = changeLogs;
 
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeRentals', id), updateData, { merge: true });
                 window.closeEditRentalModal();
@@ -1009,7 +1129,7 @@ service cloud.firestore {<br>
             { icon: 'fa-laptop', text: '手提電腦' }, { icon: 'fa-tablet-screen-button', text: '平板 (iPad)' },
             { icon: 'fa-tablet-screen-button', text: '平板 (Android)' }, { icon: 'fa-mobile-screen', text: '手機 (iPhone)' },
             { icon: 'fa-mobile-screen', text: '手機 (Android)' }, { icon: 'fa-stopwatch', text: '手錶/耳機' },
-            { icon: 'fa-layer-group', text: '多部裝置' }
+            { icon: 'fa-layer-group', text: '多部裝置' }, { icon: 'fa-ellipsis', text: '其他' }
         ];
 
         window.openSelectModal = function(title, options, currentVal, callbackName) {
@@ -1035,6 +1155,7 @@ service cloud.firestore {<br>
             if(callbackName === 'setDevice') window.setDeviceSelect(value);
             if(callbackName === 'setEditCable') window.setEditCableSelect(value);
             if(callbackName === 'setEditDevice') window.setEditDeviceSelect(value);
+            if(callbackName === 'setGuestDevice') window.setGuestDeviceSelect(value);
             window.closeSelectModal();
         };
 
@@ -1042,11 +1163,13 @@ service cloud.firestore {<br>
         window.openDeviceSelect = () => window.openSelectModal('請選擇充電目標', deviceOptions, document.getElementById('lendDevice').value, 'setDevice');
         window.openEditCableSelect = () => window.openSelectModal('變更線材配置', cableOptions, document.getElementById('editRentalCable').value, 'setEditCable');
         window.openEditDeviceSelect = () => window.openSelectModal('變更設備標的', deviceOptions, document.getElementById('editRentalDevice').value, 'setEditDevice');
+        window.openGuestDeviceSelect = () => window.openSelectModal('請選擇充電目標', deviceOptions, document.getElementById('guestLendDevice').value, 'setGuestDevice');
 
         window.setCableSelect = (val) => { document.getElementById('lendCable').value = val; document.getElementById('btnLendCable').querySelector('span').innerText = val; };
         window.setDeviceSelect = (val) => { document.getElementById('lendDevice').value = val; document.getElementById('btnLendDevice').querySelector('span').innerText = val; };
         window.setEditCableSelect = (val) => { document.getElementById('editRentalCable').value = val; document.getElementById('btnEditRentalCable').querySelector('span').innerText = val; };
         window.setEditDeviceSelect = (val) => { document.getElementById('editRentalDevice').value = val; document.getElementById('btnEditRentalDevice').querySelector('span').innerText = val; };
+        window.setGuestDeviceSelect = (val) => { document.getElementById('guestLendDevice').value = val; document.getElementById('btnGuestLendDevice').querySelector('span').innerText = val; };
 
         // Formatting
         function formatTimeOnly(isoString) { try { return isoString.split('T')[1].substring(0, 5); } catch(e) { return '--:--'; } }
