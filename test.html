@@ -469,6 +469,10 @@
             
             renderAuthUI();
             updateDashboardVisibility();
+            
+            // 強制根據權限重新渲染列表
+            renderActiveRentals();
+            renderHistory();
 
             if (!listenersSetup) {
                 listenersSetup = true;
@@ -778,6 +782,23 @@ service cloud.firestore {<br>
 
         function renderHistory() {
             const container = document.getElementById('historyContainer');
+            const statTotal = document.getElementById('stat-total');
+
+            // 訪客模式上鎖
+            if (!isAdmin) {
+                if(statTotal) statTotal.innerText = '🔒 LOCKED';
+                container.innerHTML = `
+                    <div class="official-card p-10 text-center flex flex-col items-center justify-center border-dashed border-gray-800">
+                        <div class="w-16 h-16 rounded-full bg-cardHover flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-lock text-xl text-gray-600"></i>
+                        </div>
+                        <p class="text-sm text-gray-400 font-medium tracking-wide">歷史紀錄僅限管理員查看</p>
+                    </div>`;
+                return;
+            }
+
+            if(statTotal) statTotal.innerText = `${rentalHistory.length} LOGS`;
+
             if(rentalHistory.length === 0) {
                 container.innerHTML = `<div class="text-center py-6 text-gray-600 text-sm font-medium">尚無歷史數據</div>`;
                 return;
