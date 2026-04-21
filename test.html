@@ -747,11 +747,9 @@ service cloud.firestore {<br>
                             </button>
                             ` : ''}
                         </div>
-                        ${isAdmin ? `
                         <button onclick="window.openReturnModal('${r.id}')" class="bg-white hover:bg-gray-200 text-black px-6 py-2.5 rounded-xl font-bold text-sm shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-transform active:scale-95">
-                            終止授權
+                            歸還結算
                         </button>
-                        ` : ''}
                     </div>
                 </div>
                 `;
@@ -1027,7 +1025,6 @@ service cloud.firestore {<br>
         };
 
         window.openReturnModal = function(id) {
-            if (!isAdmin) return;
             const rental = activeRentals.find(r => r.id === id);
             if(!rental) return;
 
@@ -1049,7 +1046,7 @@ service cloud.firestore {<br>
 
         document.getElementById('returnForm').onsubmit = async function(e) {
             e.preventDefault();
-            if(!currentUser || !isAdmin) return;
+            if(!currentUser) return;
 
             const startPct = parseInt(document.getElementById('returnStartPct').value);
             const endPct = parseInt(document.getElementById('returnPct').value);
