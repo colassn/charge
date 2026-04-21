@@ -61,9 +61,9 @@
                     </p>
                 </div>
             </div>
-            <button onclick="addChargeRecord()" class="bg-gray-800 hover:bg-gray-700 text-green-400 border border-green-500/30 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shrink-0">
-                <i class="fa-solid fa-plug mr-2"></i>記錄充滿電
-            </button>
+            <div id="auth-section" class="flex items-center gap-2">
+                <!-- Rendered by JS -->
+            </div>
         </div>
     </header>
 
@@ -74,7 +74,7 @@
                 <p class="text-xs text-gray-400 mb-1">充電寶當前真實電量</p>
                 <div class="flex items-end gap-2">
                     <span id="current-battery-text" class="text-4xl font-black text-white">--%</span>
-                    <button onclick="openEditBatteryModal()" class="mb-1.5 text-gray-500 hover:text-white transition-colors" title="手動校準電量">
+                    <button id="btn-edit-battery" onclick="openEditBatteryModal()" class="mb-1.5 text-gray-500 hover:text-white transition-colors hidden" title="手動校準電量">
                         <i class="fa-solid fa-pen-to-square text-sm"></i>
                     </button>
                 </div>
@@ -99,7 +99,7 @@
             
             <div class="lg:col-span-5 space-y-6">
                 
-                <div class="glass-panel rounded-2xl p-5 border-t-4 border-t-mi shadow-lg shadow-mi/5">
+                <div id="lend-form-container" class="glass-panel rounded-2xl p-5 border-t-4 border-t-mi shadow-lg shadow-mi/5 hidden">
                     <h2 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-hand-holding-hand text-mi mr-2"></i>登記借出</h2>
                     <form id="lendForm" class="space-y-4">
                         <div>
@@ -142,6 +142,16 @@
                             確認借出
                         </button>
                     </form>
+                </div>
+
+                <!-- Guest Welcome Screen -->
+                <div id="guest-welcome-container" class="glass-panel rounded-2xl p-6 border-t-4 border-t-gray-500 shadow-lg text-center hidden">
+                    <i class="fa-solid fa-users text-4xl text-gray-500 mb-3"></i>
+                    <h2 class="text-lg font-bold text-white mb-2">歡迎使用共享充電寶</h2>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        你目前處於 <strong class="text-white">訪客模式</strong>。<br><br>
+                        請喺右邊清單搵返你嘅借用紀錄，然後點擊「修改」按鈕更新你嘅充電裝置同線材，以獲取最準確嘅實時電量估算。
+                    </p>
                 </div>
             </div>
 
@@ -201,9 +211,9 @@
                     </div>
                 </div>
 
-                <div>
+                <div id="editRentalPctContainer">
                     <label class="block text-xs text-gray-400 mb-1">校準當前實時電量 (%)</label>
-                    <input type="number" id="editRentalPct" min="0" max="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-mi text-2xl font-bold text-center" required>
+                    <input type="number" id="editRentalPct" min="0" max="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-mi text-2xl font-bold text-center">
                     <p class="text-[10px] text-gray-500 mt-1 text-center">系統會自動微調進度條以對齊此數值</p>
                 </div>
 
@@ -285,7 +295,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const userConfig = {
@@ -309,7 +319,9 @@
         let recentUsers = []; 
         let currentBattery = 100;
         let currentUser = null;
+        let isAdmin = false;
         let liveTrackerInterval = null;
+        let listenersSetup = false; // 防止重複掛載監聽器
 
         const colActive = collection(db, 'artifacts', appId, 'public', 'data', 'activeRentals');
         const colHistory = collection(db, 'artifacts', appId, 'public', 'data', 'rentalHistory');
@@ -326,55 +338,159 @@
             '多部裝置': 0.12
         };
 
-        async function initAuth() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+        // 登入狀態監聽
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (err) {
+                    console.error("Auth Error:", err);
                 }
-            } catch (err) {
-                console.error("Auth Error:", err);
+                return; // 等待重新登入完成後再觸發
+            }
+
+            currentUser = user;
+            isAdmin = user && user.email === 'chimhinhin@gmail.com';
+            
+            renderAuthUI();
+            updateDashboardVisibility();
+
+            // 確保監聽器只掛載一次
+            if (!listenersSetup) {
+                listenersSetup = true;
+                setupDatabaseListeners();
+            }
+        });
+
+        // 處理 Firebase 權限錯誤 (如果使用自己的 DB 卻沒有設定 Rules)
+        function handleDbError(err) {
+            console.error("Firebase Database Error:", err);
+            if (err.code === 'permission-denied') {
+                const errorHtml = `
+                    <div class="text-left p-5 bg-red-500/10 border border-red-500/50 rounded-xl text-gray-300 text-xs leading-relaxed shadow-lg">
+                        <h4 class="font-bold text-red-400 text-sm mb-3"><i class="fa-solid fa-shield-halved mr-2"></i>數據庫權限未開放</h4>
+                        <p class="mb-3">因為你已經下載了系統並連接到自己的 Firebase (charge-d37c0)，你需要手動開放數據庫的讀寫權限，否則所有資料會被 Firebase 阻擋。</p>
+                        <ol class="list-decimal pl-4 space-y-1 mb-3 text-gray-400">
+                            <li>前往 <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-400 underline">Firebase 控制台</a></li>
+                            <li>進入專案，點擊左側的 <b>Firestore Database</b></li>
+                            <li>點擊頂部的 <b>Rules (規則)</b> 標籤</li>
+                            <li>將代碼替換為以下內容並點擊 <b>Publish (發佈)</b>：</li>
+                        </ol>
+                        <code class="block bg-black p-3 rounded-lg text-green-400 font-mono text-[10px] sm:text-xs overflow-x-auto">
+rules_version = '2';<br>
+service cloud.firestore {<br>
+&nbsp;&nbsp;match /databases/{database}/documents {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /{document=**} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if request.auth != null;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}<br>
+}
+                        </code>
+                    </div>
+                `;
+                const activeContainer = document.getElementById('activeRentalsContainer');
+                const historyContainer = document.getElementById('historyContainer');
+                if (activeContainer) activeContainer.innerHTML = errorHtml;
+                if (historyContainer) historyContainer.innerHTML = errorHtml;
             }
         }
 
-        initAuth();
-
-        onAuthStateChanged(auth, user => {
-            currentUser = user;
-            if (!user) return;
-
+        function setupDatabaseListeners() {
             onSnapshot(colActive, (snap) => {
                 activeRentals = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 activeRentals.sort((a, b) => b.timestamp - a.timestamp);
                 renderActiveRentals();
                 startLiveTracking();
                 flashSyncIndicator();
-            }, err => console.error(err));
+            }, handleDbError);
 
             onSnapshot(colHistory, (snap) => {
                 rentalHistory = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 rentalHistory.sort((a, b) => b.timestamp - a.timestamp);
                 renderHistory();
                 flashSyncIndicator();
-            }, err => console.error(err));
+            }, handleDbError);
 
             onSnapshot(docBattery, (docSnap) => {
                 if (docSnap.exists()) currentBattery = docSnap.data().value;
                 else currentBattery = 100;
                 updateDashboard();
                 flashSyncIndicator();
-            }, err => console.error(err));
+            }, handleDbError);
 
             onSnapshot(docUsers, (docSnap) => {
                 if (docSnap.exists()) {
                     recentUsers = docSnap.data().names || [];
                     renderRecentUsers();
                 }
-            }, err => console.error(err));
+            }, handleDbError);
             
             setDefaultTime();
-        });
+        }
+
+        // --- Auth Actions ---
+        window.loginWithGoogle = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (err) {
+                console.error("Login Error:", err);
+            }
+        };
+
+        window.logout = async () => {
+            try {
+                await signOut(auth); // 登出後會自動觸發 onAuthStateChanged 變成訪客
+            } catch (err) {
+                console.error("Logout Error:", err);
+            }
+        };
+
+        function renderAuthUI() {
+            const container = document.getElementById('auth-section');
+            if (isAdmin) {
+                container.innerHTML = `
+                    <div class="text-right hidden md:block mr-2">
+                        <div class="text-xs text-mi font-bold">管理員</div>
+                        <div class="text-[10px] text-gray-400">${currentUser.email}</div>
+                    </div>
+                    <button onclick="window.logout()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">登出</button>
+                    <button onclick="window.addChargeRecord()" class="bg-gray-800 hover:bg-gray-700 text-green-400 border border-green-500/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ml-2 shadow-lg shrink-0">
+                        <i class="fa-solid fa-plug mr-1"></i>充滿
+                    </button>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="text-right hidden md:block mr-2">
+                        <div class="text-xs text-gray-300 font-bold">訪客模式</div>
+                        <div class="text-[10px] text-gray-500">僅可修改個人裝置</div>
+                    </div>
+                    <button onclick="window.loginWithGoogle()" class="bg-white hover:bg-gray-200 text-black px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg flex items-center gap-2">
+                        <i class="fa-brands fa-google text-red-500"></i> 管理員登入
+                    </button>
+                `;
+            }
+        }
+
+        function updateDashboardVisibility() {
+            const lendFormContainer = document.getElementById('lend-form-container');
+            const guestWelcomeContainer = document.getElementById('guest-welcome-container');
+            const btnEditBattery = document.getElementById('btn-edit-battery');
+            
+            if (isAdmin) {
+                if(lendFormContainer) lendFormContainer.classList.remove('hidden');
+                if(guestWelcomeContainer) guestWelcomeContainer.classList.add('hidden');
+                if(btnEditBattery) btnEditBattery.classList.remove('hidden');
+            } else {
+                if(lendFormContainer) lendFormContainer.classList.add('hidden');
+                if(guestWelcomeContainer) guestWelcomeContainer.classList.remove('hidden');
+                if(btnEditBattery) btnEditBattery.classList.add('hidden');
+            }
+        }
 
         function flashSyncIndicator() {
             const ind = document.getElementById('sync-indicator');
@@ -500,17 +616,21 @@
                     </div>
 
                     <div class="flex justify-between items-center relative z-10">
-                        <div class="flex gap-1 -ml-2">
-                            <button onclick="window.openEditRentalModal('${r.id}')" class="text-gray-500 hover:text-blue-400 transition-colors p-2" title="修改裝置及校準電量">
-                                <i class="fa-solid fa-pen-to-square text-sm"></i>
+                        <div class="flex gap-2">
+                            <button onclick="window.openEditRentalModal('${r.id}')" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-md">
+                                <i class="fa-solid fa-pen"></i> 修改
                             </button>
+                            ${isAdmin ? `
                             <button onclick="window.deleteActiveRental('${r.id}')" class="text-gray-500 hover:text-red-400 transition-colors p-2" title="取消借出">
                                 <i class="fa-solid fa-trash-can text-sm"></i>
                             </button>
+                            ` : ''}
                         </div>
+                        ${isAdmin ? `
                         <button onclick="window.openReturnModal('${r.id}')" class="bg-white hover:bg-gray-200 text-black px-5 py-2 rounded-lg font-bold text-sm shadow-lg transition-transform active:scale-95">
                             歸還結算
                         </button>
+                        ` : ''}
                     </div>
                 </div>
                 `;
@@ -555,15 +675,17 @@
                             <span class="text-[10px] font-bold text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded">⚡ 充滿</span>
                             <div class="text-[10px] text-gray-500 mt-1">${formatDateTime(h.endTime)}</div>
                         </div>
-                        <button onclick="window.deleteHistory('${h.id}')" class="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        ${isAdmin ? `<button onclick="window.deleteHistory('${h.id}')" class="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                     </div>`;
                 }
 
                 return `
                 <div class="glass-panel p-3 rounded-xl border-l-4 border-l-gray-500 flex justify-between group mb-2 flex-col relative">
+                    ${isAdmin ? `
                     <div class="absolute top-2 right-2">
                         <button onclick="window.deleteHistory('${h.id}')" class="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
+                    ` : ''}
                     <div class="flex items-center justify-between mb-1 pr-6">
                         <span class="text-white font-bold text-sm">${h.user} <span class="text-[9px] text-gray-500 font-normal ml-1">${h.device}</span></span>
                     </div>
@@ -577,6 +699,7 @@
         }
 
         async function updateRecentUsers(newName) {
+            if (!isAdmin) return;
             const name = newName.trim();
             if (!name) return;
             let updatedNames = [...recentUsers];
@@ -588,7 +711,7 @@
 
         document.getElementById('lendForm').onsubmit = async function(e) {
             e.preventDefault();
-            if(!currentUser) return;
+            if(!currentUser || !isAdmin) return;
             
             const btn = e.target.querySelector('button[type="submit"]');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 儲存中...';
@@ -637,8 +760,16 @@
             window.setEditCableSelect(rental.cable || 'C to C (快充)');
             window.setEditDeviceSelect(rental.device || '手機 (iPhone)');
 
-            const stats = calculateLiveStats(rental);
-            document.getElementById('editRentalPct').value = Math.round(stats.estPct);
+            const pctContainer = document.getElementById('editRentalPctContainer');
+            if (isAdmin) {
+                pctContainer.classList.remove('hidden');
+                const stats = calculateLiveStats(rental);
+                document.getElementById('editRentalPct').value = Math.round(stats.estPct);
+                document.getElementById('editRentalPct').required = true;
+            } else {
+                pctContainer.classList.add('hidden');
+                document.getElementById('editRentalPct').required = false;
+            }
 
             document.getElementById('editRentalModal').classList.remove('hidden');
         };
@@ -656,25 +787,31 @@
                 const id = document.getElementById('editRentalId').value;
                 const newCable = document.getElementById('editRentalCable').value;
                 const newDevice = document.getElementById('editRentalDevice').value;
-                const newEstPct = parseInt(document.getElementById('editRentalPct').value);
-                const startTimeStr = document.getElementById('editRentalStartTime').value;
-
-                // Smart Recalculation: Adjust the origin (startPct) so the line passes through the user's new estimated Pct
-                const now = new Date();
-                const startTime = new Date(startTimeStr);
-                let diffMins = (now - startTime) / 60000;
-                if(diffMins < 0) diffMins = 0;
-
-                const newRate = DRAIN_RATES[newDevice] || 0.05;
-                const consumed = diffMins * newRate;
-                let newStartPct = newEstPct + consumed;
-                if(newStartPct > 100) newStartPct = 100; // Cap at 100%
-
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeRentals', id), {
+                
+                let updateData = {
                     cable: newCable,
-                    device: newDevice,
-                    startPct: newStartPct 
-                }, { merge: true });
+                    device: newDevice
+                };
+
+                // 只有管理員可以修改實時電量校準
+                if (isAdmin) {
+                    const newEstPct = parseInt(document.getElementById('editRentalPct').value);
+                    const startTimeStr = document.getElementById('editRentalStartTime').value;
+
+                    const now = new Date();
+                    const startTime = new Date(startTimeStr);
+                    let diffMins = (now - startTime) / 60000;
+                    if(diffMins < 0) diffMins = 0;
+
+                    const newRate = DRAIN_RATES[newDevice] || 0.05;
+                    const consumed = diffMins * newRate;
+                    let newStartPct = newEstPct + consumed;
+                    if(newStartPct > 100) newStartPct = 100;
+
+                    updateData.startPct = newStartPct;
+                }
+
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeRentals', id), updateData, { merge: true });
 
                 window.closeEditRentalModal();
             } catch(err) {
@@ -687,6 +824,7 @@
 
 
         window.openReturnModal = function(id) {
+            if (!isAdmin) return;
             const rental = activeRentals.find(r => r.id === id);
             if(!rental) return;
 
@@ -707,7 +845,7 @@
 
         document.getElementById('returnForm').onsubmit = async function(e) {
             e.preventDefault();
-            if(!currentUser) return;
+            if(!currentUser || !isAdmin) return;
 
             const startPct = parseInt(document.getElementById('returnStartPct').value);
             const endPct = parseInt(document.getElementById('returnPct').value);
@@ -749,6 +887,7 @@
         };
 
         window.addChargeRecord = function() {
+            if (!isAdmin) return;
             window.showConfirm('記錄充電', '確定已充滿至 100%？', async () => {
                 if(!currentUser) return;
                 await addDoc(colHistory, { type: 'charge', endTime: new Date().toISOString(), timestamp: Date.now() });
@@ -757,6 +896,7 @@
         };
 
         window.deleteHistory = function(id) {
+            if (!isAdmin) return;
             window.showConfirm('刪除紀錄', '確定要刪除這條紀錄嗎？', async () => {
                 if(!currentUser) return;
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rentalHistory', id));
@@ -764,6 +904,7 @@
         };
 
         window.deleteActiveRental = function(id) {
+            if (!isAdmin) return;
             window.showConfirm('取消借出', '確定要刪除這筆「借出中」的紀錄嗎？', async () => {
                 if(!currentUser) return;
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeRentals', id));
@@ -772,7 +913,7 @@
 
         document.getElementById('editBatteryForm').onsubmit = async function(e) {
             e.preventDefault();
-            if(!currentUser) return;
+            if(!currentUser || !isAdmin) return;
             const newVal = parseInt(document.getElementById('newBatteryPct').value);
             if(newVal >= 0 && newVal <= 100) {
                 await setDoc(docBattery, { value: newVal });
