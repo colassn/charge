@@ -214,26 +214,22 @@
                         <p class="text-sm text-gray-400">只需 3 步，系統將自動記錄時間並啟動監測。</p>
                     </div>
 
-                    <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-6 flex items-start sm:items-center gap-3 relative z-10">
-                        <i class="fa-solid fa-circle-exclamation text-red-500 text-lg mt-0.5 sm:mt-0"></i>
-                        <div class="text-xs text-red-200 leading-relaxed">
-                            <strong class="text-red-400 text-sm">護電警告：</strong><br class="sm:hidden"/>為保護電池壽命，請務必在電量跌至 <strong class="text-white text-sm bg-red-500/50 px-1 rounded">30%</strong> 前歸還！
+                    <div id="guest-rules-wrapper" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6 relative z-10 hidden">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-circle-exclamation text-red-500 text-lg"></i>
+                            <strong class="text-red-400 text-sm">護電與結算警告：</strong>
+                        </div>
+                        <div id="dynamic-guest-rules" class="text-xs text-red-200 leading-relaxed space-y-1.5">
+                            <div><span class="text-red-400 font-bold mr-1">1.</span> <span class="text-white">載入中...</span></div>
                         </div>
                     </div>
                     
                     <form id="guestLendForm" class="space-y-4 relative z-10">
                         <div class="bg-black/50 p-5 rounded-2xl border border-white/5 space-y-5 shadow-inner">
-                            
-                            <!-- 01. Name -->
-                            <div>
-                                <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest"><span class="text-mi mr-1">01.</span> 您的姓名</label>
-                                <input type="text" id="guestLendUser" class="w-full bg-transparent border-b border-gray-700 focus:border-mi px-2 py-2 text-white text-xl font-bold focus:outline-none transition-colors placeholder-gray-700" placeholder="點擊輸入名字..." required autocomplete="off">
-                                <div id="recentUsersContainerGuest" class="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1 hidden"></div>
-                            </div>
 
-                            <!-- 02. Device -->
+                            <!-- 01. Device -->
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest"><span class="text-mi mr-1">02.</span> 充電裝置</label>
+                                <label class="block text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest"><span class="text-mi mr-1">01.</span> 主要充電裝置</label>
                                 <button type="button" onclick="openGuestDeviceSelect()" id="btnGuestLendDevice" class="w-full bg-cardHover border border-white/5 rounded-xl px-4 py-4 text-white font-bold text-left text-lg flex justify-between items-center focus:outline-none hover:bg-gray-700 transition-colors">
                                     <span class="truncate pr-2">手機 (iPhone)</span>
                                     <i class="fa-solid fa-chevron-down text-gray-500 text-sm"></i>
@@ -241,10 +237,10 @@
                                 <input type="hidden" id="guestLendDevice" value="手機 (iPhone)" required>
                             </div>
 
-                            <!-- 03. Battery -->
+                            <!-- 02. Battery -->
                             <div>
                                 <div class="flex justify-between items-end mb-2">
-                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest"><span class="text-mi mr-1">03.</span> 當前電量 (%)</label>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest"><span class="text-mi mr-1">02.</span> 當前真實電量 (%)</label>
                                     <span class="text-[9px] text-gray-600">誤差請保持在 ±15% 內</span>
                                 </div>
                                 <input type="number" id="guestLendPct" min="0" max="100" class="w-full bg-cardHover border border-white/5 rounded-xl px-4 py-4 text-white text-center text-3xl font-black font-mono focus:outline-none focus:border-mi transition-colors" required>
@@ -450,6 +446,22 @@
         </div>
     </div>
 
+    <!-- Edit Guest Rules Modal -->
+    <div id="editRulesModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-xl transition-all duration-300 opacity-0">
+        <div class="bg-card border border-white/10 rounded-[2rem] p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="editRulesContent">
+            <h3 class="text-xl font-bold text-center text-white mb-6 tracking-tight">自定義訪客提示</h3>
+            <form id="editRulesForm" class="space-y-4">
+                <p class="text-xs text-gray-400 mb-2">請在下方輸入提示項目（每行一項，系統會自動編號）：</p>
+                <textarea id="rulesTextarea" rows="6" class="w-full bg-black border border-white/10 rounded-2xl px-4 py-4 text-white focus:outline-none focus:border-mi text-sm leading-relaxed placeholder-gray-600 resize-none" placeholder="輸入提示內容..."></textarea>
+                
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeEditRulesModal()" class="flex-1 py-3.5 rounded-2xl bg-cardHover text-white font-bold">取消</button>
+                    <button type="submit" class="flex-1 py-3.5 rounded-2xl bg-mi hover:bg-miDark text-white font-bold shadow-[0_0_20px_rgba(255,105,0,0.3)] transition-all">儲存更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Confirm Modal -->
     <div id="confirmModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-xl transition-all duration-300 opacity-0">
         <div class="bg-card border border-red-500/30 rounded-[2rem] p-8 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300" id="confirmContent">
@@ -506,6 +518,7 @@
         let rentalHistory = [];
         let recentUsers = []; 
         let currentBattery = 100;
+        let guestRulesList = [];
         let currentUser = null;
         let isAdmin = false;
         let liveTrackerInterval = null;
@@ -515,6 +528,7 @@
         const colHistory = collection(db, 'artifacts', appId, 'public', 'data', 'rentalHistory');
         const docBattery = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'batteryState');
         const docUsers = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'recentUsers');
+        const docRules = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'guestRules');
 
         // 基準設備耗電率 (% / min)
         const DRAIN_RATES = {
@@ -669,7 +683,32 @@ service cloud.firestore {<br>
                 }
             }, handleDbError);
             
+            onSnapshot(docRules, (docSnap) => {
+                if (docSnap.exists() && docSnap.data().rules) {
+                    guestRulesList = docSnap.data().rules;
+                } else {
+                    guestRulesList = [
+                        "為保護電池壽命，請務必在電量跌至 30% 前歸還！",
+                        "歸還時，請務必點擊下方清單中的「歸還結算」，並輸入實機當時的真實剩餘電量！"
+                    ];
+                }
+                renderGuestRules();
+            }, handleDbError);
+
             setDefaultTime();
+        }
+
+        function renderGuestRules() {
+            const container = document.getElementById('dynamic-guest-rules');
+            const wrapper = document.getElementById('guest-rules-wrapper');
+            if(guestRulesList.length === 0) {
+                if(wrapper) wrapper.classList.add('hidden');
+            } else {
+                if(wrapper) wrapper.classList.remove('hidden');
+                if(container) {
+                    container.innerHTML = guestRulesList.map((rule, index) => `<div class="mb-1 flex items-start"><span class="text-red-400 font-bold mr-1.5 shrink-0">${index + 1}.</span> <span class="text-white text-sm leading-relaxed">${rule}</span></div>`).join('');
+                }
+            }
         }
 
         window.loginWithGoogle = async () => {
@@ -689,7 +728,10 @@ service cloud.firestore {<br>
                         <div class="text-[10px] font-bold text-mi tracking-widest uppercase">Admin Active</div>
                         <div class="text-[11px] text-gray-400 font-medium">${currentUser.email}</div>
                     </div>
-                    <button onclick="window.openAnalyticsModal()" class="bg-cardHover hover:bg-blue-500 border border-white/10 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg" title="分析報告">
+                    <button onclick="window.openEditRulesModal()" class="bg-cardHover hover:bg-yellow-600 border border-white/10 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg" title="自定義訪客提示">
+                        <i class="fa-solid fa-list-check text-sm"></i>
+                    </button>
+                    <button onclick="window.openAnalyticsModal()" class="bg-cardHover hover:bg-blue-500 border border-white/10 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ml-1" title="分析報告">
                         <i class="fa-solid fa-chart-pie text-sm"></i>
                     </button>
                     <button onclick="window.addChargeRecord()" class="bg-cardHover hover:bg-white hover:text-black border border-white/10 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ml-1" title="記錄充滿">
@@ -799,7 +841,7 @@ service cloud.firestore {<br>
         }
 
         function renderRecentUsers() {
-            const containers = [document.getElementById('recentUsersContainer'), document.getElementById('recentUsersContainerGuest')];
+            const containers = [document.getElementById('recentUsersContainer')];
             containers.forEach(container => {
                 if(!container) return;
                 if (recentUsers.length > 0) {
@@ -817,9 +859,7 @@ service cloud.firestore {<br>
 
         window.fillUserName = function(name) { 
             const adminInput = document.getElementById('lendUser');
-            const guestInput = document.getElementById('guestLendUser');
             if(adminInput) adminInput.value = name; 
-            if(guestInput) guestInput.value = name;
         };
 
         function calculateLiveStats(rental) {
@@ -1108,7 +1148,7 @@ service cloud.firestore {<br>
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 處理中...';
 
             try {
-                const user = document.getElementById('guestLendUser').value;
+                const user = '匿名訪客';
                 const device = document.getElementById('guestLendDevice').value;
                 const cable = '未知 (訪客自助)'; 
                 const protocol = '未知 (依賴裝置推算)';
@@ -1128,9 +1168,7 @@ service cloud.firestore {<br>
                 await addDoc(colActive, payload);
 
                 await setDoc(docBattery, { value: startPct });
-                await updateRecentUsers(user);
 
-                document.getElementById('guestLendUser').value = '';
                 if(!device2Container.classList.contains('hidden')) window.toggleDevice2('guest');
             } catch (err) {
                 console.error(err);
@@ -1495,6 +1533,35 @@ service cloud.firestore {<br>
             if(newVal >= 0 && newVal <= 100) {
                 await setDoc(docBattery, { value: newVal });
                 window.closeEditBatteryModal();
+            }
+        };
+
+        window.openEditRulesModal = () => {
+            document.getElementById('rulesTextarea').value = guestRulesList.join('\n');
+            openModalAnim('editRulesModal', 'editRulesContent');
+        };
+        
+        window.closeEditRulesModal = () => closeModalAnim('editRulesModal', 'editRulesContent');
+
+        document.getElementById('editRulesForm').onsubmit = async function(e) {
+            e.preventDefault();
+            if(!currentUser || !isAdmin) return;
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 儲存中...';
+
+            try {
+                const text = document.getElementById('rulesTextarea').value;
+                // 去除可能手動輸入的數字序號，確保系統排版乾淨
+                const newRules = text.split('\n').map(r => r.replace(/^\d+[\.\s、]+/, '').trim()).filter(r => r !== '');
+                await setDoc(docRules, { rules: newRules });
+                window.closeEditRulesModal();
+            } catch (err) {
+                console.error(err);
+                alert("儲存失敗！");
+            } finally {
+                btn.innerHTML = originalHTML;
             }
         };
 
