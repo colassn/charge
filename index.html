@@ -130,9 +130,18 @@
                             <div id="recentUsersContainer" class="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1 hidden"></div>
                         </div>
 
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5">充電協議 (決定精準耗電率)</label>
+                            <button type="button" onclick="openProtocolSelect()" id="btnLendProtocol" class="w-full official-input rounded-2xl px-4 py-3.5 text-mi font-bold text-left text-sm flex justify-between items-center focus:outline-none border border-white/5">
+                                <span class="truncate pr-2">未知 (依賴裝置推算)</span>
+                                <i class="fa-solid fa-chevron-down text-mi/50 text-[10px]"></i>
+                            </button>
+                            <input type="hidden" id="lendProtocol" value="未知 (依賴裝置推算)" required>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-medium text-gray-400 mb-1.5">線材類型</label>
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">主線材</label>
                                 <button type="button" onclick="openCableSelect()" id="btnLendCable" class="w-full official-input rounded-2xl px-4 py-3.5 text-white text-left text-sm flex justify-between items-center focus:outline-none">
                                     <span class="truncate pr-2">C to C (快充)</span>
                                     <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
@@ -140,12 +149,35 @@
                                 <input type="hidden" id="lendCable" value="C to C (快充)" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-400 mb-1.5">充電裝置</label>
-                                <button type="button" onclick="openDeviceSelect()" id="btnLendDevice" class="w-full official-input rounded-2xl px-4 py-3.5 text-mi font-bold text-left text-sm flex justify-between items-center focus:outline-none">
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">主裝置</label>
+                                <button type="button" onclick="openDeviceSelect()" id="btnLendDevice" class="w-full official-input rounded-2xl px-4 py-3.5 text-white font-bold text-left text-sm flex justify-between items-center focus:outline-none">
                                     <span class="truncate pr-2">手機 (iPhone)</span>
-                                    <i class="fa-solid fa-chevron-down text-mi/50 text-[10px]"></i>
+                                    <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
                                 </button>
                                 <input type="hidden" id="lendDevice" value="手機 (iPhone)" required>
+                            </div>
+                        </div>
+
+                        <div class="text-right -mt-2">
+                            <button type="button" id="btnAddDevice2_lend" onclick="toggleDevice2('lend')" class="text-xs text-mi font-bold hover:text-white transition-colors"><i class="fa-solid fa-plus mr-1"></i>新增第二裝置</button>
+                        </div>
+                        <div id="device2Container_lend" class="hidden grid-cols-2 gap-4 bg-black/40 p-4 rounded-2xl border border-dashed border-white/10 relative mt-0">
+                            <button type="button" onclick="toggleDevice2('lend')" class="absolute -top-3 -right-2 w-7 h-7 bg-cardHover rounded-full text-gray-400 hover:text-red-500 flex items-center justify-center border border-white/10 shadow-lg"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">副線材</label>
+                                <button type="button" onclick="openCableSelect2()" id="btnLendCable2" class="w-full official-input rounded-2xl px-4 py-3.5 text-white text-left text-sm flex justify-between items-center focus:outline-none">
+                                    <span class="truncate pr-2">C to C (快充)</span>
+                                    <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
+                                </button>
+                                <input type="hidden" id="lendCable2" value="C to C (快充)">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">副裝置</label>
+                                <button type="button" onclick="openDeviceSelect2()" id="btnLendDevice2" class="w-full official-input rounded-2xl px-4 py-3.5 text-white font-bold text-left text-sm flex justify-between items-center focus:outline-none">
+                                    <span class="truncate pr-2">手機 (iPhone)</span>
+                                    <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
+                                </button>
+                                <input type="hidden" id="lendDevice2" value="手機 (iPhone)">
                             </div>
                         </div>
 
@@ -175,8 +207,9 @@
                         <p class="text-sm text-gray-400 leading-relaxed text-justify">
                             為保護並延長電池壽命，本系統已啟用實時電量監測。<br>此為訪客模式，請在下方輸入姓名並選擇裝置，系統將自動擷取時間並啟動監測。<br><br>
                             <span class="text-mi font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i> 注意事項：</span><br>
-                            1. 若充電寶正由他人使用，請先於右側點擊「歸還結算」，再新增您的紀錄。<br>
-                            2. 填寫的「當前電量」必須與實機屏幕顯示相符（誤差限於 ±15% 內）。
+                            1. <strong class="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">保護尿袋壽命：必須在電量低於 30% 前歸還！</strong><br>
+                            2. 若充電寶正由他人使用，請先於右側點擊「歸還結算」，再新增您的紀錄。<br>
+                            3. 填寫的「當前電量」必須與實機屏幕顯示相符（誤差限於 ±15% 內）。
                         </p>
                     </div>
                     
@@ -189,7 +222,7 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-medium text-gray-400 mb-1.5">充電裝置</label>
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">主要充電裝置</label>
                                 <button type="button" onclick="openGuestDeviceSelect()" id="btnGuestLendDevice" class="w-full official-input rounded-2xl px-4 py-3.5 text-mi font-bold text-left text-sm flex justify-between items-center focus:outline-none">
                                     <span class="truncate pr-2">手機 (iPhone)</span>
                                     <i class="fa-solid fa-chevron-down text-mi/50 text-[10px]"></i>
@@ -199,6 +232,22 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-400 mb-1.5">當前真實電量 (%)</label>
                                 <input type="number" id="guestLendPct" min="0" max="100" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none font-bold text-center" required>
+                            </div>
+                        </div>
+
+                        <!-- 裝置 2 區塊 (訪客) -->
+                        <div class="text-right -mt-2">
+                            <button type="button" id="btnAddDevice2_guest" onclick="toggleDevice2('guest')" class="text-xs text-mi font-bold hover:text-white transition-colors"><i class="fa-solid fa-plus mr-1"></i>新增第二裝置</button>
+                        </div>
+                        <div id="device2Container_guest" class="hidden grid-cols-1 gap-4 bg-black/40 p-4 rounded-2xl border border-dashed border-white/10 relative mt-0">
+                            <button type="button" onclick="toggleDevice2('guest')" class="absolute -top-3 -right-2 w-7 h-7 bg-cardHover rounded-full text-gray-400 hover:text-red-500 flex items-center justify-center border border-white/10 shadow-lg"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1.5">副裝置</label>
+                                <button type="button" onclick="openGuestDeviceSelect2()" id="btnGuestLendDevice2" class="w-full official-input rounded-2xl px-4 py-3.5 text-white font-bold text-left text-sm flex justify-between items-center focus:outline-none">
+                                    <span class="truncate pr-2">手機 (Android)</span>
+                                    <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
+                                </button>
+                                <input type="hidden" id="guestLendDevice2" value="手機 (Android)">
                             </div>
                         </div>
 
@@ -238,11 +287,9 @@
         </div>
     </main>
 
-    <!-- Modals (Refined Design) -->
-
     <!-- Edit Active Rental Modal -->
-    <div id="editRentalModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-xl transition-all duration-300 opacity-0">
-        <div class="bg-card border border-white/10 rounded-[2rem] p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="editRentalContent">
+    <div id="editRentalModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-xl transition-all duration-300 opacity-0 overflow-y-auto py-10">
+        <div class="bg-card border border-white/10 rounded-[2rem] p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300 my-auto" id="editRentalContent">
             <div class="text-center mb-6">
                 <h3 class="text-2xl font-bold text-white tracking-tight">狀態更新與校準</h3>
                 <p id="edit-rental-user" class="text-gray-400 text-sm mt-1">--</p>
@@ -257,9 +304,18 @@
                     <input type="text" id="editRentalUser" class="w-full official-input rounded-2xl px-4 py-3.5 text-white focus:outline-none" required autocomplete="off">
                 </div>
 
+                <div id="adminEditProtocolContainer" class="hidden">
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">充電協議 (決定精準耗電率)</label>
+                    <button type="button" onclick="openEditProtocolSelect()" id="btnEditRentalProtocol" class="w-full official-input rounded-2xl px-4 py-3.5 text-mi font-bold text-left text-sm flex justify-between items-center focus:outline-none border border-white/5">
+                        <span class="truncate pr-2">--</span>
+                        <i class="fa-solid fa-chevron-down text-mi/50 text-[10px]"></i>
+                    </button>
+                    <input type="hidden" id="editRentalProtocol" required>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">線材</label>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">主線材</label>
                         <button type="button" onclick="openEditCableSelect()" id="btnEditRentalCable" class="w-full official-input rounded-2xl px-4 py-3.5 text-white text-left text-sm flex justify-between items-center focus:outline-none">
                             <span class="truncate pr-2">--</span>
                             <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
@@ -267,8 +323,8 @@
                         <input type="hidden" id="editRentalCable" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-400 mb-1.5">裝置</label>
-                        <button type="button" onclick="openEditDeviceSelect()" id="btnEditRentalDevice" class="w-full official-input rounded-2xl px-4 py-3.5 text-mi font-bold text-left text-sm flex justify-between items-center focus:outline-none">
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">主裝置</label>
+                        <button type="button" onclick="openEditDeviceSelect()" id="btnEditRentalDevice" class="w-full official-input rounded-2xl px-4 py-3.5 text-white font-bold text-left text-sm flex justify-between items-center focus:outline-none">
                             <span class="truncate pr-2">--</span>
                             <i class="fa-solid fa-chevron-down text-mi/50 text-[10px]"></i>
                         </button>
@@ -276,7 +332,31 @@
                     </div>
                 </div>
 
-                <!-- 讓所有人都能看到並修改實時電量 -->
+                <div id="editDevice2ContainerWrapper">
+                    <div class="text-right -mt-2">
+                        <button type="button" id="btnAddDevice2_edit" onclick="toggleDevice2('edit')" class="text-xs text-mi font-bold hover:text-white transition-colors"><i class="fa-solid fa-plus mr-1"></i>新增第二裝置</button>
+                    </div>
+                    <div id="device2Container_edit" class="hidden grid-cols-2 gap-4 bg-black/40 p-4 rounded-2xl border border-dashed border-white/10 relative mt-0">
+                        <button type="button" onclick="toggleDevice2('edit')" class="absolute -top-3 -right-2 w-7 h-7 bg-cardHover rounded-full text-gray-400 hover:text-red-500 flex items-center justify-center border border-white/10 shadow-lg"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5">副線材</label>
+                            <button type="button" onclick="openEditCableSelect2()" id="btnEditRentalCable2" class="w-full official-input rounded-2xl px-4 py-3.5 text-white text-left text-sm flex justify-between items-center focus:outline-none">
+                                <span class="truncate pr-2">C to C (快充)</span>
+                                <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
+                            </button>
+                            <input type="hidden" id="editRentalCable2" value="C to C (快充)">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5">副裝置</label>
+                            <button type="button" onclick="openEditDeviceSelect2()" id="btnEditRentalDevice2" class="w-full official-input rounded-2xl px-4 py-3.5 text-white font-bold text-left text-sm flex justify-between items-center focus:outline-none">
+                                <span class="truncate pr-2">手機 (Android)</span>
+                                <i class="fa-solid fa-chevron-down text-gray-500 text-[10px]"></i>
+                            </button>
+                            <input type="hidden" id="editRentalDevice2" value="手機 (Android)">
+                        </div>
+                    </div>
+                </div>
+
                 <div id="editRentalPctContainer" class="bg-black/50 p-4 rounded-2xl border border-white/5">
                     <label class="block text-xs font-medium text-gray-400 mb-2 text-center">校準當前實時電量 (%)</label>
                     <input type="number" id="editRentalPct" min="0" max="100" class="w-full bg-transparent border-none text-white focus:outline-none text-4xl font-black text-center font-mono" required>
@@ -421,6 +501,7 @@
         const docBattery = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'batteryState');
         const docUsers = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'recentUsers');
 
+        // 基準設備耗電率 (% / min)
         const DRAIN_RATES = {
             '手提電腦': 0.15,
             '平板 (iPad)': 0.08, 
@@ -430,6 +511,18 @@
             '手錶/耳機': 0.01,
             '多部裝置': 0.12,
             '其他': 0.08
+        };
+
+        // 協議指定耗電率 (% / min)
+        const PROTOCOL_RATES = {
+            'PD 3.1 (5V-28V) 140W+': 0.35,
+            'PD 3.0 / PPS 65W+': 0.20,
+            'PD 20W-30W (iPhone/iPad)': 0.08,
+            'QC 3.0 (18W)': 0.06,
+            'Huawei FCP/SCP (22.5W+)': 0.08,
+            '5V/2.4A (Apple)': 0.04,
+            '5V/2A (普通)': 0.03,
+            '未知 (依賴裝置推算)': null
         };
 
         function openModalAnim(modalId, contentId) {
@@ -450,6 +543,30 @@
             if(content && contentId.includes('select')) content.classList.add('translate-y-full');
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
+
+        window.toggleDevice2 = function(mode) {
+            const btn = document.getElementById(`btnAddDevice2_${mode}`);
+            const container = document.getElementById(`device2Container_${mode}`);
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                container.classList.add('grid');
+                if (btn) btn.classList.add('hidden');
+            } else {
+                container.classList.add('hidden');
+                container.classList.remove('grid');
+                if (btn) btn.classList.remove('hidden');
+                // 關閉時重置數值，避免錯誤提交
+                if(mode === 'lend') {
+                    window.setCableSelect2('C to C (快充)');
+                    window.setDeviceSelect2('手機 (Android)');
+                } else if (mode === 'edit') {
+                    window.setEditCableSelect2('C to C (快充)');
+                    window.setEditDeviceSelect2('手機 (Android)');
+                } else if (mode === 'guest') {
+                    window.setGuestDeviceSelect2('手機 (Android)');
+                }
+            }
+        };
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -580,6 +697,7 @@ service cloud.firestore {<br>
             const lendFormContainer = document.getElementById('lend-form-container');
             const guestWelcomeContainer = document.getElementById('guest-welcome-container');
             const btnEditBattery = document.getElementById('btn-edit-battery');
+            const editDevice2ContainerWrapper = document.getElementById('editDevice2ContainerWrapper');
             
             if (isAdmin) {
                 if(lendFormContainer) lendFormContainer.classList.remove('hidden');
@@ -672,12 +790,26 @@ service cloud.firestore {<br>
             let diffMins = (now - baseTime) / 60000;
             if(diffMins < 0) diffMins = 0; 
 
-            const rate = DRAIN_RATES[rental.device] || 0.05;
-            const consumed = diffMins * rate;
+            // 計算基礎設備耗電 (若有雙裝置則相加)
+            let baseRate = DRAIN_RATES[rental.device] || 0.05;
+            if (rental.device2) {
+                baseRate += (DRAIN_RATES[rental.device2] || 0.05);
+            }
+
+            let finalRate = baseRate;
+            // 如果管理員有指定協議，則取協議速度與設備總和速度的最大值，確保不會低估
+            if (rental.protocol && PROTOCOL_RATES[rental.protocol] !== null && PROTOCOL_RATES[rental.protocol] !== undefined) {
+                finalRate = Math.max(PROTOCOL_RATES[rental.protocol], baseRate);
+            }
+
+            const consumed = diffMins * finalRate;
             let currentEst = basePct - consumed;
             if(currentEst < 0) currentEst = 0;
+            
+            // 25000mAh，1% = 250mAh。 mAh/min = 速率 * 250
+            const mAhPerMin = Math.round(finalRate * 250);
 
-            return { estPct: currentEst, consumed: rental.startPct - currentEst, diffMins: diffMins, rate: rate };
+            return { estPct: currentEst, consumed: rental.startPct - currentEst, diffMins: diffMins, rate: finalRate, mAhPerMin: mAhPerMin };
         }
 
         function renderActiveRentals() {
@@ -710,24 +842,35 @@ service cloud.firestore {<br>
                 else if(stats.estPct < 50) barColor = 'bg-orange-500';
 
                 const latestChange = r.changeLogs && r.changeLogs.length > 0 ? r.changeLogs[r.changeLogs.length - 1] : null;
-                const changeHtml = latestChange ? `<div class="text-mi mt-1 flex items-center gap-1 bg-mi/10 w-max px-1.5 py-0.5 rounded border border-mi/20"><i class="fa-solid fa-code-merge text-[8px]"></i> ${formatTimeOnly(latestChange.time)} 更改為 ${latestChange.device}</div>` : '';
+                const changeHtml = latestChange ? `<div class="text-gray-400 w-max rounded flex items-center gap-1"><i class="fa-solid fa-code-merge text-[8px]"></i> ${formatTimeOnly(latestChange.time)} 更改</div>` : '';
+                const protoTag = (r.protocol && r.protocol !== '未知 (依賴裝置推算)') ? `<span class="bg-mi/20 text-mi px-1.5 py-0.5 rounded text-[9px] font-bold border border-mi/30"><i class="fa-solid fa-bolt mr-1"></i>${r.protocol}</span>` : '';
+                
+                // 組合雙裝置顯示文字
+                let deviceString = r.device;
+                if (r.device2) deviceString += ` <span class="text-gray-600">&</span> ${r.device2}`;
 
                 return `
                 <div class="official-card p-6 active-rental-card relative overflow-hidden group">
                     <div class="flex justify-between items-start mb-5">
-                        <div class="flex items-center gap-4 relative z-10">
+                        <div class="flex items-center gap-4 relative z-10 w-full pr-24">
                             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center text-xl shrink-0 shadow-inner">
                                 <i class="fa-solid ${devIcon} text-white"></i>
                             </div>
-                            <div>
-                                <div class="text-white font-bold text-lg leading-tight tracking-wide">${r.user}</div>
-                                <div class="text-xs text-gray-500 mt-1 font-medium">
-                                    ${r.device} &nbsp;&middot;&nbsp; ${timeOnly} 開始 (${r.startPct}%)
+                            <div class="flex-grow">
+                                <div class="text-white font-bold text-lg leading-tight tracking-wide flex items-center gap-2 flex-wrap">
+                                    ${r.user} ${protoTag}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1.5 font-medium flex flex-wrap gap-2 items-center leading-relaxed">
+                                    <span class="text-gray-300 font-bold">${deviceString}</span>
+                                    <span>&middot; ${timeOnly} 開始 (${r.startPct}%)</span>
+                                    <span class="text-mi bg-mi/10 px-1.5 py-0.5 rounded border border-mi/20 flex items-center gap-1 shrink-0">
+                                        <i class="fa-solid fa-gauge-high"></i> ~${stats.mAhPerMin} mAh/min
+                                    </span>
                                     ${changeHtml}
                                 </div>
                             </div>
                         </div>
-                        <div class="relative z-10 text-right">
+                        <div class="absolute top-6 right-6 z-10 text-right">
                             <div class="text-4xl font-black text-white font-mono tracking-tighter" id="live-pct-${r.id}">${displayPct}<span class="text-2xl text-gray-500">%</span></div>
                         </div>
                     </div>
@@ -818,12 +961,16 @@ service cloud.firestore {<br>
                     </div>`;
                 }
 
+                let deviceString = h.device;
+                if(h.device2) deviceString += ` & ${h.device2}`;
+
                 return `
                 <div class="bg-card hover:bg-cardHover p-5 rounded-2xl border border-white/5 flex justify-between group transition-colors mb-2 flex-col sm:flex-row gap-4 sm:gap-0">
                     <div class="flex-grow pr-4">
-                        <div class="flex items-center gap-2 mb-1.5">
+                        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                             <span class="text-white font-bold text-base tracking-wide">${h.user}</span>
-                            <span class="text-[10px] text-gray-500 bg-black px-2 py-0.5 rounded-md border border-white/5">${h.device}</span>
+                            <span class="text-[10px] text-gray-500 bg-black px-2 py-0.5 rounded-md border border-white/5">${deviceString}</span>
+                            ${h.protocol && h.protocol !== '未知 (依賴裝置推算)' ? `<span class="text-[10px] text-mi bg-mi/10 px-2 py-0.5 rounded-md border border-mi/20">${h.protocol}</span>` : ''}
                         </div>
                         <div class="text-xs text-gray-500 font-mono">
                             ${formatDateTime(h.startTime)} <i class="fa-solid fa-arrow-right mx-1 text-[10px]"></i> ${formatTimeOnly(h.endTime)}
@@ -848,7 +995,6 @@ service cloud.firestore {<br>
         }
 
         async function updateRecentUsers(newName) {
-            if (!isAdmin) return;
             const name = newName.trim();
             if (!name) return;
             let updatedNames = [...recentUsers];
@@ -868,6 +1014,7 @@ service cloud.firestore {<br>
 
             try {
                 const user = document.getElementById('lendUser').value;
+                const protocol = document.getElementById('lendProtocol').value;
                 const cable = document.getElementById('lendCable').value;
                 const device = document.getElementById('lendDevice').value;
                 const startPct = parseInt(document.getElementById('lendPct').value);
@@ -877,15 +1024,25 @@ service cloud.firestore {<br>
                 const dateStr = today.toISOString().split('T')[0];
                 const fullDateStr = `${dateStr}T${time}:00`;
 
-                await addDoc(colActive, {
-                    user: user, cable: cable, device: device, startPct: startPct,
+                let payload = {
+                    user: user, protocol: protocol, cable: cable, device: device, startPct: startPct,
                     startTime: fullDateStr, timestamp: Date.now()
-                });
+                };
+
+                const device2Container = document.getElementById('device2Container_lend');
+                if (!device2Container.classList.contains('hidden')) {
+                    payload.cable2 = document.getElementById('lendCable2').value;
+                    payload.device2 = document.getElementById('lendDevice2').value;
+                }
+
+                await addDoc(colActive, payload);
 
                 await setDoc(docBattery, { value: startPct });
                 await updateRecentUsers(user);
 
                 document.getElementById('lendUser').value = '';
+                // 如果有開啟第二裝置，重置並隱藏
+                if(!device2Container.classList.contains('hidden')) window.toggleDevice2('lend');
             } catch (err) {
                 console.error(err);
                 alert("儲存失敗！");
@@ -915,17 +1072,27 @@ service cloud.firestore {<br>
                 const user = document.getElementById('guestLendUser').value;
                 const device = document.getElementById('guestLendDevice').value;
                 const cable = '未知 (訪客自助)'; 
+                const protocol = '未知 (依賴裝置推算)';
                 const fullDateStr = new Date().toISOString(); 
 
-                await addDoc(colActive, {
-                    user: user, cable: cable, device: device, startPct: startPct,
+                let payload = {
+                    user: user, protocol: protocol, cable: cable, device: device, startPct: startPct,
                     startTime: fullDateStr, timestamp: Date.now()
-                });
+                };
+
+                const device2Container = document.getElementById('device2Container_guest');
+                if (!device2Container.classList.contains('hidden')) {
+                    payload.cable2 = '未知 (訪客自助)';
+                    payload.device2 = document.getElementById('guestLendDevice2').value;
+                }
+
+                await addDoc(colActive, payload);
 
                 await setDoc(docBattery, { value: startPct });
                 await updateRecentUsers(user);
 
                 document.getElementById('guestLendUser').value = '';
+                if(!device2Container.classList.contains('hidden')) window.toggleDevice2('guest');
             } catch (err) {
                 console.error(err);
                 alert("儲存失敗！");
@@ -944,22 +1111,47 @@ service cloud.firestore {<br>
             document.getElementById('edit-rental-user').innerText = `目標對象: ${rental.user}`;
             document.getElementById('editRentalUser').value = rental.user;
             
+            window.setEditProtocolSelect(rental.protocol || '未知 (依賴裝置推算)');
             window.setEditCableSelect(rental.cable || 'C to C (快充)');
             window.setEditDeviceSelect(rental.device || '手機 (iPhone)');
 
+            // 處理雙裝置顯示狀態
+            const device2Container = document.getElementById('device2Container_edit');
+            const btnAddDevice2 = document.getElementById('btnAddDevice2_edit');
+            if (rental.device2) {
+                window.setEditCableSelect2(rental.cable2 || 'C to C (快充)');
+                window.setEditDeviceSelect2(rental.device2);
+                device2Container.classList.remove('hidden');
+                device2Container.classList.add('grid');
+                btnAddDevice2.classList.add('hidden');
+            } else {
+                window.setEditCableSelect2('C to C (快充)');
+                window.setEditDeviceSelect2('手機 (Android)');
+                device2Container.classList.add('hidden');
+                device2Container.classList.remove('grid');
+                btnAddDevice2.classList.remove('hidden');
+            }
+
+            const pctContainer = document.getElementById('editRentalPctContainer');
             const userContainer = document.getElementById('adminEditUserContainer');
+            const protocolContainer = document.getElementById('adminEditProtocolContainer');
             const userDisplay = document.getElementById('edit-rental-user');
 
             if (isAdmin) {
+                pctContainer.classList.remove('hidden');
                 userContainer.classList.remove('hidden');
+                protocolContainer.classList.remove('hidden');
                 userDisplay.classList.add('hidden');
+                const stats = calculateLiveStats(rental);
+                document.getElementById('editRentalPct').value = Math.round(stats.estPct);
+                document.getElementById('editRentalPct').required = true;
             } else {
+                pctContainer.classList.add('hidden');
                 userContainer.classList.add('hidden');
+                protocolContainer.classList.add('hidden');
                 userDisplay.classList.remove('hidden');
+                document.getElementById('editRentalPct').required = false;
             }
-
-            const stats = calculateLiveStats(rental);
-            document.getElementById('editRentalPct').value = Math.round(stats.estPct);
 
             openModalAnim('editRentalModal', 'editRentalContent');
         };
@@ -979,24 +1171,44 @@ service cloud.firestore {<br>
                 const rental = activeRentals.find(r => r.id === id);
                 const newCable = document.getElementById('editRentalCable').value;
                 const newDevice = document.getElementById('editRentalDevice').value;
+                const newProtocol = isAdmin ? document.getElementById('editRentalProtocol').value : (rental.protocol || '未知 (依賴裝置推算)');
                 
                 const nowIso = new Date().toISOString();
+                const currentStats = calculateLiveStats(rental);
                 
                 let updateData = { 
+                    protocol: newProtocol,
                     cable: newCable, 
                     device: newDevice,
-                    lastCalcTime: nowIso
+                    lastCalcTime: nowIso,
+                    lastCalcPct: currentStats.estPct
                 };
+
+                // 處理副裝置資料寫入
+                const device2Container = document.getElementById('device2Container_edit');
+                if (!device2Container.classList.contains('hidden')) {
+                    updateData.cable2 = document.getElementById('editRentalCable2').value;
+                    updateData.device2 = document.getElementById('editRentalDevice2').value;
+                } else {
+                    updateData.cable2 = ''; 
+                    updateData.device2 = '';
+                }
 
                 if (isAdmin) {
                     updateData.user = document.getElementById('editRentalUser').value;
                 }
 
-                // 所有人（訪客或管理員）皆可校準實時電量
                 const newEstPct = parseInt(document.getElementById('editRentalPct').value);
                 let diffMins = (new Date() - new Date(document.getElementById('editRentalStartTime').value)) / 60000;
                 if(diffMins < 0) diffMins = 0;
-                const newRate = DRAIN_RATES[newDevice] || 0.05;
+                
+                let newRate = DRAIN_RATES[newDevice] || 0.05;
+                if (updateData.device2) newRate += (DRAIN_RATES[updateData.device2] || 0.05); // 疊加第二部裝置耗電
+
+                if (newProtocol && PROTOCOL_RATES[newProtocol] !== null && PROTOCOL_RATES[newProtocol] !== undefined) {
+                    newRate = Math.max(PROTOCOL_RATES[newProtocol], newRate);
+                }
+                
                 const consumed = diffMins * newRate;
                 let newStartPct = newEstPct + consumed;
                 if(newStartPct > 100) newStartPct = 100;
@@ -1059,14 +1271,23 @@ service cloud.firestore {<br>
                 const startTimeStr = document.getElementById('returnStartTime').value;
                 const fullEndDateStr = new Date().toISOString(); 
                 
-                await addDoc(colHistory, {
+                const rental = activeRentals.find(r => r.id === id);
+                
+                let payload = {
                     type: 'use',
                     user: document.getElementById('return-modal-user').innerText.replace('結算對象: ', ''),
-                    device: activeRentals.find(r => r.id === id)?.device || '未知',
+                    device: rental?.device || '未知',
+                    protocol: rental?.protocol || '未知 (依賴裝置推算)',
                     startPct: startPct, endPct: endPct,
                     startTime: startTimeStr, endTime: fullEndDateStr,
                     consumed: startPct - endPct, timestamp: Date.now()
-                });
+                };
+
+                if (rental?.device2) {
+                    payload.device2 = rental.device2;
+                }
+
+                await addDoc(colHistory, payload);
 
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeRentals', id));
                 await setDoc(docBattery, { value: endPct });
@@ -1155,7 +1376,7 @@ service cloud.firestore {<br>
                     ${leaderboardHtml}
                 </div>
 
-                <div class="bg-gradient-to-br from-gray-900 to-black p-6 rounded-2xl border border-mi/20 relative overflow-hidden shadow-[0_0_30px_rgba(255,105,0,0.05)]">
+                <div class="bg-gradient-to-br from-gray-900 to-black p-6 rounded-2xl border border-mi/20 relative overflow-hidden shadow-[0_0_30px_rgba(255,105,0,0.05)] mb-6">
                     <div class="absolute -right-4 -bottom-4 opacity-10">
                         <i class="fa-solid fa-shield-heart text-7xl text-green-500"></i>
                     </div>
@@ -1169,11 +1390,35 @@ service cloud.firestore {<br>
                         2. 避免「過充存放」，若充電寶需長期閒置不用，請將電量維持在 50% 左右最為健康。
                     </p>
                 </div>
+                
+                <div class="pt-4 border-t border-white/5 text-right">
+                    <button onclick="window.clearTodayRecords()" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-5 py-3 rounded-xl text-xs font-bold transition-colors border border-red-500/30 shadow-lg flex items-center gap-2 ml-auto">
+                        <i class="fa-solid fa-calendar-times"></i> 一鍵清除今日紀錄 (開始新一天)
+                    </button>
+                </div>
             `;
 
             openModalAnim('analyticsModal', 'analyticsContent');
         };
         window.closeAnalyticsModal = () => closeModalAnim('analyticsModal', 'analyticsContent');
+
+        window.clearTodayRecords = function() {
+            window.showConfirm('清除今日紀錄', '確定要清除今日（午夜 00:00 後）產生的所有結算與充電報告嗎？此操作無法復原。', async () => {
+                const todayStart = new Date();
+                todayStart.setHours(0,0,0,0);
+                const todayTime = todayStart.getTime();
+                
+                let count = 0;
+                for (const log of rentalHistory) {
+                    if (log.timestamp >= todayTime) {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rentalHistory', log.id));
+                        count++;
+                    }
+                }
+                
+                window.closeAnalyticsModal();
+            });
+        };
 
 
         window.addChargeRecord = function() {
@@ -1232,6 +1477,17 @@ service cloud.firestore {<br>
         };
 
         // Dropdowns Data
+        const protocolOptions = [
+            { icon: 'fa-bolt-lightning', text: 'PD 3.1 (5V-28V) 140W+', desc: '適合 MacBook Pro 16" 及最新高階手提電腦' },
+            { icon: 'fa-bolt', text: 'PD 3.0 / PPS 65W+', desc: '適合大多數手提電腦、Samsung S24 Ultra、小米快充' },
+            { icon: 'fa-battery-half', text: 'PD 20W-30W (iPhone/iPad)', desc: '適合 iPhone 8-15 系列、新款 iPad' },
+            { icon: 'fa-gauge-high', text: 'QC 3.0 (18W)', desc: '適合較舊款 Android 手機、一般快充' },
+            { icon: 'fa-mobile', text: 'Huawei FCP/SCP (22.5W+)', desc: '適合華為系列手機快充' },
+            { icon: 'fa-apple', text: '5V/2.4A (Apple)', desc: '適合舊款 iPhone/iPad 標準慢充' },
+            { icon: 'fa-plug', text: '5V/2A (普通)', desc: '適合藍牙耳機、智能手錶等低功耗裝置' },
+            { icon: 'fa-question', text: '未知 (依賴裝置推算)', desc: '系統自動根據裝置類型估算' }
+        ];
+        
         const cableOptions = [
             { icon: 'fa-bolt', text: 'C to C (快充)' }, { icon: 'fa-plug', text: 'C to Lightning' },
             { icon: 'fa-plug', text: 'A to Lightning' }, { icon: 'fa-usb', text: 'A to C' },
@@ -1253,7 +1509,10 @@ service cloud.firestore {<br>
                     <div class="w-10 h-10 rounded-full flex items-center justify-center ${currentVal === opt.text ? 'bg-mi/20 text-mi' : 'bg-card text-gray-400 border border-white/5'} shrink-0 shadow-inner">
                         <i class="fa-solid ${opt.icon}"></i>
                     </div>
-                    <span class="text-base">${opt.text}</span>
+                    <div class="flex flex-col">
+                        <span class="text-base">${opt.text}</span>
+                        ${opt.desc ? `<span class="text-[10px] text-gray-500 mt-0.5 leading-tight">${opt.desc}</span>` : ''}
+                    </div>
                 </button>
             `).join('');
 
@@ -1263,25 +1522,51 @@ service cloud.firestore {<br>
         window.closeSelectModal = () => closeModalAnim('selectModal', 'selectModalContent');
 
         window.handleSelect = function(value, callbackName) {
+            if(callbackName === 'setProtocol') window.setProtocolSelect(value);
             if(callbackName === 'setCable') window.setCableSelect(value);
             if(callbackName === 'setDevice') window.setDeviceSelect(value);
+            if(callbackName === 'setEditProtocol') window.setEditProtocolSelect(value);
             if(callbackName === 'setEditCable') window.setEditCableSelect(value);
             if(callbackName === 'setEditDevice') window.setEditDeviceSelect(value);
             if(callbackName === 'setGuestDevice') window.setGuestDeviceSelect(value);
+            // 新增的 Callback
+            if(callbackName === 'setCable2') window.setCableSelect2(value);
+            if(callbackName === 'setDevice2') window.setDeviceSelect2(value);
+            if(callbackName === 'setEditCable2') window.setEditCableSelect2(value);
+            if(callbackName === 'setEditDevice2') window.setEditDeviceSelect2(value);
+            if(callbackName === 'setGuestDevice2') window.setGuestDeviceSelect2(value);
             window.closeSelectModal();
         };
 
+        window.openProtocolSelect = () => window.openSelectModal('請選擇充電協議', protocolOptions, document.getElementById('lendProtocol').value, 'setProtocol');
         window.openCableSelect = () => window.openSelectModal('請選擇線材', cableOptions, document.getElementById('lendCable').value, 'setCable');
         window.openDeviceSelect = () => window.openSelectModal('請選擇充電目標', deviceOptions, document.getElementById('lendDevice').value, 'setDevice');
+        window.openCableSelect2 = () => window.openSelectModal('請選擇副線材', cableOptions, document.getElementById('lendCable2').value, 'setCable2');
+        window.openDeviceSelect2 = () => window.openSelectModal('請選擇副充電目標', deviceOptions, document.getElementById('lendDevice2').value, 'setDevice2');
+        
+        window.openEditProtocolSelect = () => window.openSelectModal('變更協議配置', protocolOptions, document.getElementById('editRentalProtocol').value, 'setEditProtocol');
         window.openEditCableSelect = () => window.openSelectModal('變更線材配置', cableOptions, document.getElementById('editRentalCable').value, 'setEditCable');
         window.openEditDeviceSelect = () => window.openSelectModal('變更設備標的', deviceOptions, document.getElementById('editRentalDevice').value, 'setEditDevice');
+        window.openEditCableSelect2 = () => window.openSelectModal('變更副線材', cableOptions, document.getElementById('editRentalCable2').value, 'setEditCable2');
+        window.openEditDeviceSelect2 = () => window.openSelectModal('變更副設備標的', deviceOptions, document.getElementById('editRentalDevice2').value, 'setEditDevice2');
+        
         window.openGuestDeviceSelect = () => window.openSelectModal('請選擇充電目標', deviceOptions, document.getElementById('guestLendDevice').value, 'setGuestDevice');
+        window.openGuestDeviceSelect2 = () => window.openSelectModal('請選擇副充電目標', deviceOptions, document.getElementById('guestLendDevice2').value, 'setGuestDevice2');
 
+        window.setProtocolSelect = (val) => { document.getElementById('lendProtocol').value = val; document.getElementById('btnLendProtocol').querySelector('span').innerText = val; };
         window.setCableSelect = (val) => { document.getElementById('lendCable').value = val; document.getElementById('btnLendCable').querySelector('span').innerText = val; };
         window.setDeviceSelect = (val) => { document.getElementById('lendDevice').value = val; document.getElementById('btnLendDevice').querySelector('span').innerText = val; };
+        window.setCableSelect2 = (val) => { document.getElementById('lendCable2').value = val; document.getElementById('btnLendCable2').querySelector('span').innerText = val; };
+        window.setDeviceSelect2 = (val) => { document.getElementById('lendDevice2').value = val; document.getElementById('btnLendDevice2').querySelector('span').innerText = val; };
+        
+        window.setEditProtocolSelect = (val) => { document.getElementById('editRentalProtocol').value = val; document.getElementById('btnEditRentalProtocol').querySelector('span').innerText = val; };
         window.setEditCableSelect = (val) => { document.getElementById('editRentalCable').value = val; document.getElementById('btnEditRentalCable').querySelector('span').innerText = val; };
         window.setEditDeviceSelect = (val) => { document.getElementById('editRentalDevice').value = val; document.getElementById('btnEditRentalDevice').querySelector('span').innerText = val; };
+        window.setEditCableSelect2 = (val) => { document.getElementById('editRentalCable2').value = val; document.getElementById('btnEditRentalCable2').querySelector('span').innerText = val; };
+        window.setEditDeviceSelect2 = (val) => { document.getElementById('editRentalDevice2').value = val; document.getElementById('btnEditRentalDevice2').querySelector('span').innerText = val; };
+        
         window.setGuestDeviceSelect = (val) => { document.getElementById('guestLendDevice').value = val; document.getElementById('btnGuestLendDevice').querySelector('span').innerText = val; };
+        window.setGuestDeviceSelect2 = (val) => { document.getElementById('guestLendDevice2').value = val; document.getElementById('btnGuestLendDevice2').querySelector('span').innerText = val; };
 
         // Formatting
         function formatTimeOnly(isoString) { try { return isoString.split('T')[1].substring(0, 5); } catch(e) { return '--:--'; } }
