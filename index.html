@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小米 212W 雲端共享與保養系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Noto Sans HK"', 'sans-serif'] },
+                    colors: {
+                        mi: '#ff6900',
+                        miDark: '#e55e00',
+                        dark: '#121212',
+                        darkCard: '#1e1e1e'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0f1115; color: #e5e7eb; }
+        .glass-panel {
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        
+        @keyframes soft-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 105, 0, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 105, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 105, 0, 0); }
+        }
+        .active-rental-card {
+            animation: soft-pulse 2s infinite;
+            border: 1px solid #ff6900;
+        }
+        
+        /* Hide scrollbar for horizontal scrolling tags */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+    <header class="glass-panel sticky top-0 z-40 shadow-lg">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-mi to-orange-400 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 relative">
+                    <i class="fa-solid fa-bolt text-xl"></i>
+                    <!-- Cloud Sync Indicator -->
+                    <div id="sync-indicator" class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-dark"></div>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-wide">Xiaomi 212W 共享終端</h1>
+                    <p class="text-xs text-gray-400 flex items-center gap-1">
+                        <i class="fa-solid fa-cloud text-[10px]"></i> 已連接 Firebase 雲端同步
+                    </p>
+                </div>
+            </div>
+            <button onclick="addChargeRecord()" class="bg-gray-800 hover:bg-gray-700 text-green-400 border border-green-500/30 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shrink-0">
+                <i class="fa-solid fa-plug mr-2"></i>記錄充滿電
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto w-full px-4 py-6 space-y-6">
+        
+        <!-- Section 1: Battery Health & Advice -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-center border-l-4" id="battery-status-card">
+                <p class="text-xs text-gray-400 mb-1">系統預估當前電量</p>
+                <div class="flex items-end gap-2">
+                    <span id="current-battery-text" class="text-4xl font-black text-white">--%</span>
+                    <button onclick="openEditBatteryModal()" class="mb-1.5 text-gray-500 hover:text-white transition-colors" title="手動校準電量">
+                        <i class="fa-solid fa-pen-to-square text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-center">
+                <p class="text-xs text-gray-400 mb-1">電池健康度估計</p>
+                <div class="flex items-center gap-2" id="health-indicator">
+                    <i class="fa-solid fa-heart-pulse text-green-400 text-2xl"></i>
+                    <span class="text-xl font-bold text-white">良好</span>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-2">避免低於 20% 有助維持健康</p>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-center bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden border border-gray-700">
+                <div class="absolute -right-4 -bottom-4 opacity-10">
+                    <i class="fa-solid fa-lightbulb text-6xl text-mi"></i>
+                </div>
+                <p class="text-xs text-gray-400 mb-2">保養系統建議</p>
+                <p id="system-advice" class="text-sm font-medium text-gray-200 leading-relaxed">
+                    載入中...
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Column: Actions -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- Active Rentals -->
+                <div>
+                    <h2 class="text-lg font-bold text-white mb-3"><i class="fa-solid fa-stopwatch text-mi mr-2"></i>借出中...</h2>
+                    <div id="activeRentalsContainer" class="space-y-3">
+                        <div class="text-center py-6 text-gray-500 bg-gray-800/30 rounded-xl border border-dashed border-gray-700 text-sm">
+                            <i class="fa-solid fa-circle-notch fa-spin mr-2"></i>同步資料中...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lend Form -->
+                <div class="glass-panel rounded-2xl p-5 border-t-4 border-t-gray-600">
+                    <h2 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-hand-holding-hand text-gray-300 mr-2"></i>登記借出</h2>
+                    <form id="lendForm" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">借用人</label>
+                            <input type="text" id="lendUser" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-mi focus:outline-none" placeholder="例如: 阿明 / 自己" required autocomplete="off">
+                            
+                            <!-- NEW: Recent Users Quick Tags -->
+                            <div id="recentUsersContainer" class="mt-2 flex gap-2 overflow-x-auto no-scrollbar pb-1 hidden">
+                                <!-- Tags will be injected here -->
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">線材類型</label>
+                                <button type="button" onclick="openCableSelect()" id="btnLendCable" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-left text-sm flex justify-between items-center focus:outline-none focus:border-mi transition-colors">
+                                    <span>C to C (快充)</span>
+                                    <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+                                </button>
+                                <input type="hidden" id="lendCable" value="C to C (快充)" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">充電裝置</label>
+                                <button type="button" onclick="openDeviceSelect()" id="btnLendDevice" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-left text-sm flex justify-between items-center focus:outline-none focus:border-mi transition-colors">
+                                    <span>手機 (iPhone)</span>
+                                    <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+                                </button>
+                                <input type="hidden" id="lendDevice" value="手機 (iPhone)" required>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">借出時電量 (%)</label>
+                                <input type="number" id="lendPct" min="0" max="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-mi" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1">借出時間 (24小時制)</label>
+                                <input type="time" id="lendTime" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-mi" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition-all shadow-lg mt-2">
+                            確認借出
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: History -->
+            <div class="lg:col-span-7">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-clock-rotate-left mr-2"></i>歷史租借紀錄</h2>
+                    <span id="stat-total" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-400">共 0 條</span>
+                </div>
+                
+                <div id="historyContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 pb-10">
+                     <div class="text-center py-10 text-gray-600 border border-dashed border-gray-800 rounded-xl">
+                        <i class="fa-solid fa-cloud-arrow-down fa-bounce text-2xl mb-2"></i><br>
+                        正在從 Firebase 載入...
+                     </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Return Modal -->
+    <div id="returnModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-darkCard border border-mi rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold text-center text-white mb-1">歸還充電寶</h3>
+            <p id="return-modal-user" class="text-center text-mi text-sm font-bold mb-6">正在歸還: --</p>
+            
+            <form id="returnForm" class="space-y-4">
+                <input type="hidden" id="returnId">
+                <input type="hidden" id="returnStartPct">
+                <input type="hidden" id="returnStartTime">
+                <input type="hidden" id="returnCable">
+                <input type="hidden" id="returnDevice">
+                <input type="hidden" id="returnUserName">
+
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">歸還時剩餘電量 (%)</label>
+                    <input type="number" id="returnPct" min="0" max="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-mi text-2xl font-bold text-center" placeholder="輸入電量" required>
+                </div>
+                
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">歸還時間 (24小時制)</label>
+                    <input type="time" id="returnTime" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-mi" required>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeReturnModal()" class="flex-1 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold">取消</button>
+                    <button type="submit" class="flex-1 py-3 rounded-lg bg-mi hover:bg-miDark text-white font-bold shadow-lg shadow-mi/30">確認歸還</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-darkCard border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 id="confirm-title" class="text-lg font-bold text-center text-white mb-2">提示</h3>
+            <p id="confirm-msg" class="text-center text-gray-400 text-sm mb-6"></p>
+            <div class="flex gap-3">
+                <button id="confirm-btn-cancel" onclick="closeConfirmModal()" class="flex-1 py-2 rounded-lg bg-gray-800 text-gray-300">取消</button>
+                <button id="confirm-btn-ok" class="flex-1 py-2 rounded-lg bg-mi text-white font-bold">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Battery Modal -->
+    <div id="editBatteryModal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-darkCard border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold text-center text-white mb-2">手動校準電量</h3>
+            <p class="text-center text-gray-400 text-sm mb-6">如果系統預估有誤差，請輸入屏幕實際電量同步至雲端。</p>
+            
+            <form id="editBatteryForm" class="space-y-4">
+                <div>
+                    <input type="number" id="newBatteryPct" min="0" max="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-4 text-white focus:outline-none focus:border-mi text-3xl font-bold text-center" placeholder="例如: 85" required>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeEditBatteryModal()" class="flex-1 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold">取消</button>
+                    <button type="submit" class="flex-1 py-3 rounded-lg bg-mi hover:bg-miDark text-white font-bold shadow-lg shadow-mi/30">確認更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Select Modal -->
+    <div id="selectModal" class="fixed inset-0 z-[60] hidden flex items-end sm:items-center justify-center sm:px-4 sm:pb-4 bg-black/70 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+        <div class="bg-darkCard border border-gray-700 rounded-t-2xl sm:rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden transform transition-transform translate-y-full sm:translate-y-0 duration-300" id="selectModalContent">
+            <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/50">
+                <h3 id="select-title" class="text-lg font-bold text-white">請選擇</h3>
+                <button type="button" onclick="closeSelectModal()" class="text-gray-400 hover:text-white w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="select-options" class="max-h-[50vh] overflow-y-auto p-2">
+                <!-- Options injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration
+        const userConfig = {
+            apiKey: "AIzaSyBrR4LBM2GA9vWQVR2KeQu4YFgHJXSYsNE",
+            authDomain: "charge-d37c0.firebaseapp.com",
+            projectId: "charge-d37c0",
+            storageBucket: "charge-d37c0.firebasestorage.app",
+            messagingSenderId: "1094688653484",
+            appId: "1:1094688653484:web:b16fccdc2ef3b748675f09",
+            measurementId: "G-M4M2WD66RJ"
+        };
+        
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userConfig;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'mi-powerbank-app';
+
+        // State Memory
+        let activeRentals = [];
+        let rentalHistory = [];
+        let recentUsers = []; // New array for storing names
+        let currentBattery = 100;
+        let currentUser = null;
+
+        // Paths strictly conforming to Canvas Rules
+        const colActive = collection(db, 'artifacts', appId, 'public', 'data', 'activeRentals');
+        const colHistory = collection(db, 'artifacts', appId, 'public', 'data', 'rentalHistory');
+        const docBattery = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'batteryState');
+        const docUsers = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'recentUsers');
+
+        // Init Auth
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth Error:", err);
+                alert("雲端登入失敗，請重試");
+            }
+        }
+
+        initAuth();
+
+        onAuthStateChanged(auth, user => {
+            currentUser = user;
+            if (!user) return;
+
+            // 1. Listen to Active Rentals
+            onSnapshot(colActive, (snap) => {
+                activeRentals = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                activeRentals.sort((a, b) => b.timestamp - a.timestamp);
+                renderActiveRentals();
+                flashSyncIndicator();
+            }, err => {
+                console.error("Snapshot Error:", err);
+                if(err.code === 'permission-denied') alert('⚠️ 無法連接雲端：Firebase Firestore 權限不足！請檢查 Rules 設置。');
+            });
+
+            // 2. Listen to History
+            onSnapshot(colHistory, (snap) => {
+                rentalHistory = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                rentalHistory.sort((a, b) => b.timestamp - a.timestamp);
+                renderHistory();
+                flashSyncIndicator();
+            }, err => {
+                console.error("Snapshot Error:", err);
+            });
+
+            // 3. Listen to Battery State
+            onSnapshot(docBattery, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentBattery = docSnap.data().value;
+                } else {
+                    currentBattery = 100;
+                }
+                updateDashboard();
+                flashSyncIndicator();
+            }, err => console.error("Snapshot Error:", err));
+
+            // 4. Listen to Recent Users List
+            onSnapshot(docUsers, (docSnap) => {
+                if (docSnap.exists()) {
+                    recentUsers = docSnap.data().names || [];
+                    renderRecentUsers();
+                }
+            }, err => console.error("Snapshot Error:", err));
+            
+            setDefaultTime();
+        });
+
+        function flashSyncIndicator() {
+            const ind = document.getElementById('sync-indicator');
+            ind.classList.remove('bg-green-500');
+            ind.classList.add('bg-white', 'shadow-[0_0_8px_#fff]');
+            setTimeout(() => {
+                ind.classList.add('bg-green-500');
+                ind.classList.remove('bg-white', 'shadow-[0_0_8px_#fff]');
+            }, 500);
+        }
+
+        function setDefaultTime() {
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('lendTime').value = timeString;
+            setTimeout(() => { document.getElementById('lendPct').value = currentBattery; }, 500);
+        }
+
+        // --- Core UI Updates ---
+
+        function updateDashboard() {
+            const batText = document.getElementById('current-battery-text');
+            const statusCard = document.getElementById('battery-status-card');
+            const adviceTxt = document.getElementById('system-advice');
+            const healthInd = document.getElementById('health-indicator');
+            
+            batText.innerText = currentBattery + '%';
+            document.getElementById('lendPct').value = currentBattery;
+            
+            statusCard.className = "glass-panel p-5 rounded-2xl flex flex-col justify-center border-l-4 transition-colors duration-500"; 
+            
+            if (currentBattery < 20) {
+                statusCard.classList.add('border-l-red-500');
+                batText.className = "text-4xl font-black text-red-500";
+                healthInd.innerHTML = `<i class="fa-solid fa-heart-crack text-red-500 text-2xl"></i><span class="text-xl font-bold text-red-400">極低</span>`;
+                adviceTxt.innerHTML = `<span class="text-red-400 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>危險：處於深度放電邊緣！</span><br>請盡快插掣充電。如果只係應付短時間，建議充至 50% 拔除；如果準備出門，請充至 80-90%。`;
+            } else if (currentBattery <= 50) {
+                statusCard.classList.add('border-l-orange-500');
+                batText.className = "text-4xl font-black text-orange-400";
+                healthInd.innerHTML = `<i class="fa-solid fa-heart-pulse text-orange-400 text-2xl"></i><span class="text-xl font-bold text-white">一般</span>`;
+                adviceTxt.innerHTML = `<span class="text-orange-400 font-bold"><i class="fa-solid fa-battery-half mr-1"></i>電量減半</span><br>如有需要，可以把握有插頭嘅時間補一補血。充到 80% 左右對鋰電池壽命最好。`;
+            } else if (currentBattery <= 85) {
+                statusCard.classList.add('border-l-green-500');
+                batText.className = "text-4xl font-black text-green-400";
+                healthInd.innerHTML = `<i class="fa-solid fa-heart-pulse text-green-400 text-2xl"></i><span class="text-xl font-bold text-white">極佳</span>`;
+                adviceTxt.innerHTML = `<span class="text-green-400 font-bold"><i class="fa-solid fa-leaf mr-1"></i>極佳狀態</span><br>目前處於最健康嘅電壓區間。電量足以應付日常借用，無需刻意充滿至 100%。`;
+            } else {
+                statusCard.classList.add('border-l-mi');
+                batText.className = "text-4xl font-black text-white";
+                healthInd.innerHTML = `<i class="fa-solid fa-heart-pulse text-mi text-2xl"></i><span class="text-xl font-bold text-white">滿載</span>`;
+                adviceTxt.innerHTML = `<span class="text-white font-bold"><i class="fa-solid fa-battery-full mr-1"></i>電量充足</span><br>為免電池長期處於高壓狀態加速老化，建議暫時唔好再充電。盡情使用吧！`;
+            }
+        }
+
+        // NEW: Render Recent Users Tags
+        function renderRecentUsers() {
+            const container = document.getElementById('recentUsersContainer');
+            if (recentUsers.length > 0) {
+                container.classList.remove('hidden');
+                container.innerHTML = recentUsers.map(name => `
+                    <button type="button" onclick="window.fillUserName('${name}')" class="shrink-0 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-300 text-[10px] px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-history text-gray-500"></i> ${name}
+                    </button>
+                `).join('');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        window.fillUserName = function(name) {
+            document.getElementById('lendUser').value = name;
+            // Optionally focus next logical field
+            document.getElementById('lendPct').focus();
+        };
+
+        function renderActiveRentals() {
+            const container = document.getElementById('activeRentalsContainer');
+
+            if(activeRentals.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-gray-500 bg-gray-800/30 rounded-xl border border-dashed border-gray-700 text-sm">目前冇人借緊充電寶</div>`;
+                return;
+            }
+
+            container.innerHTML = activeRentals.map(r => {
+                const timeOnly = formatTimeOnly(r.startTime);
+                let devIcon = 'fa-mobile-screen';
+                if(r.device.includes('平板')) devIcon = 'fa-tablet-screen-button';
+                if(r.device.includes('電腦')) devIcon = 'fa-laptop';
+                if(r.device.includes('手錶')) devIcon = 'fa-stopwatch';
+
+                return `
+                <div class="bg-gray-800/80 rounded-xl p-4 flex justify-between items-center active-rental-card">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-mi/20 text-mi flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-bold leading-tight">${r.user}</div>
+                            <div class="text-[11px] text-gray-400 mt-0.5 flex items-center gap-2">
+                                <span><i class="fa-regular fa-clock mr-1"></i>${timeOnly} 借出</span>
+                                <span class="bg-gray-700 px-1.5 py-0.5 rounded"><i class="fa-solid ${devIcon} mr-1"></i>${r.device}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-2 shrink-0 ml-2">
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.deleteActiveRental('${r.id}')" class="text-gray-500 hover:text-red-400 transition-colors" title="刪除此紀錄">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                            <span class="text-xs font-bold bg-gray-700 px-2 py-1 rounded text-white">${r.startPct}% 出</span>
+                        </div>
+                        <button onclick="window.openReturnModal('${r.id}')" class="bg-mi hover:bg-miDark text-white px-4 py-1.5 rounded font-bold text-sm shadow-lg shadow-mi/30 transition-transform active:scale-95">
+                            歸還
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyContainer');
+            document.getElementById('stat-total').innerText = `共 ${rentalHistory.length} 條`;
+
+            if(rentalHistory.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-gray-600 border border-dashed border-gray-800 rounded-xl">未有任何紀錄</div>`;
+                return;
+            }
+
+            container.innerHTML = rentalHistory.map(h => {
+                if(h.type === 'charge') {
+                    return `
+                    <div class="glass-panel p-4 rounded-xl border-l-4 border-l-green-500 flex justify-between items-center group mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded">⚡ 手動記錄充電</span>
+                            <div class="text-white font-bold mt-1">電量更新至 100%</div>
+                            <div class="text-[10px] text-gray-500 mt-1">${formatDateTime(h.endTime)}</div>
+                        </div>
+                        <button onclick="window.deleteHistory('${h.id}')" class="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 p-2 transition-all"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>`;
+                }
+
+                return `
+                <div class="glass-panel p-4 rounded-xl border-l-4 border-l-gray-500 flex justify-between items-center group mb-3">
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-white font-bold text-lg">${h.user}</span>
+                            <span class="text-xs text-gray-500">${formatTimeOnly(h.startTime)} <i class="fa-solid fa-arrow-right mx-0.5 text-[10px]"></i> ${formatTimeOnly(h.endTime)}</span>
+                        </div>
+                        <div class="flex gap-2 mb-2">
+                            <span class="text-[10px] bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded border border-gray-700">
+                                <i class="fa-solid fa-plug mr-1 opacity-70"></i>${h.cable || '未知線材'}
+                            </span>
+                            <span class="text-[10px] bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded border border-gray-700">
+                                <i class="fa-solid fa-mobile-screen mr-1 opacity-70"></i>${h.device || '未知裝置'}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 mt-1">
+                            <span class="text-xl font-black text-white">${h.startPct}% <i class="fa-solid fa-caret-right text-gray-600 mx-1"></i> ${h.endPct}%</span>
+                            <span class="text-sm font-bold text-mi bg-mi/10 border border-mi/20 px-2 py-0.5 rounded">消耗 ${h.consumed}%</span>
+                        </div>
+                    </div>
+                    <button onclick="window.deleteHistory('${h.id}')" class="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 p-2 ml-4 transition-all"><i class="fa-solid fa-trash-can"></i></button>
+                </div>`;
+            }).join('');
+        }
+
+        // --- Firebase Writes (Event Handlers) ---
+
+        // Helper function to update recent users array
+        async function updateRecentUsers(newName) {
+            const name = newName.trim();
+            if (!name) return;
+            
+            let updatedNames = [...recentUsers];
+            // Remove if already exists so we can push to top
+            updatedNames = updatedNames.filter(n => n !== name);
+            // Add to beginning
+            updatedNames.unshift(name);
+            // Keep max 8 names
+            if (updatedNames.length > 8) {
+                updatedNames = updatedNames.slice(0, 8);
+            }
+            
+            await setDoc(docUsers, { names: updatedNames });
+        }
+
+        document.getElementById('lendForm').onsubmit = async function(e) {
+            e.preventDefault();
+            if(!currentUser) return;
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 儲存中...';
+
+            try {
+                const user = document.getElementById('lendUser').value;
+                const cable = document.getElementById('lendCable').value;
+                const device = document.getElementById('lendDevice').value;
+                const startPct = parseInt(document.getElementById('lendPct').value);
+                const time = document.getElementById('lendTime').value;
+                const fullDateStr = new Date().toISOString().split('T')[0] + 'T' + time;
+
+                // 1. Add to active rentals
+                await addDoc(colActive, {
+                    user: user,
+                    cable: cable,
+                    device: device,
+                    startPct: startPct,
+                    startTime: fullDateStr,
+                    timestamp: Date.now()
+                });
+
+                // 2. Update global battery
+                await setDoc(docBattery, { value: startPct });
+
+                // 3. Update Recent Users Memory
+                await updateRecentUsers(user);
+
+                document.getElementById('lendUser').value = '';
+            } catch (err) {
+                console.error(err);
+                alert("儲存失敗！");
+            } finally {
+                btn.innerHTML = '確認借出';
+            }
+        };
+
+        window.openReturnModal = function(id) {
+            const rental = activeRentals.find(r => r.id === id);
+            if(!rental) return;
+
+            document.getElementById('returnId').value = rental.id;
+            document.getElementById('returnStartPct').value = rental.startPct;
+            document.getElementById('returnStartTime').value = rental.startTime;
+            document.getElementById('returnCable').value = rental.cable || '未知';
+            document.getElementById('returnDevice').value = rental.device || '未知';
+            document.getElementById('returnUserName').value = rental.user;
+            
+            document.getElementById('return-modal-user').innerText = `正在歸還: ${rental.user} (借出時: ${rental.startPct}%)`;
+            
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('returnTime').value = timeString;
+            document.getElementById('returnPct').value = ''; 
+
+            document.getElementById('returnModal').classList.remove('hidden');
+        };
+
+        document.getElementById('returnForm').onsubmit = async function(e) {
+            e.preventDefault();
+            if(!currentUser) return;
+
+            const startPct = parseInt(document.getElementById('returnStartPct').value);
+            const endPct = parseInt(document.getElementById('returnPct').value);
+            
+            if(endPct > startPct) {
+                alert('歸還電量唔可以大過借出電量喎！');
+                return;
+            }
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 處理中...';
+
+            try {
+                const id = document.getElementById('returnId').value;
+                const startTimeStr = document.getElementById('returnStartTime').value;
+                const returnTimeVal = document.getElementById('returnTime').value;
+                const fullEndDateStr = new Date().toISOString().split('T')[0] + 'T' + returnTimeVal; 
+
+                // 1. Move to history
+                await addDoc(colHistory, {
+                    type: 'use',
+                    user: document.getElementById('returnUserName').value,
+                    cable: document.getElementById('returnCable').value,
+                    device: document.getElementById('returnDevice').value,
+                    startPct: startPct,
+                    endPct: endPct,
+                    startTime: startTimeStr,
+                    endTime: fullEndDateStr,
+                    consumed: startPct - endPct,
+                    timestamp: Date.now()
+                });
+
+                // 2. Delete active
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeRentals', id));
+
+                // 3. Update global battery
+                await setDoc(docBattery, { value: endPct });
+
+                window.closeReturnModal();
+            } catch (err) {
+                console.error(err);
+                alert("歸還失敗！");
+            } finally {
+                btn.innerHTML = '確認歸還';
+            }
+        };
+
+        window.addChargeRecord = function() {
+            window.showConfirm('記錄充電', '確定已將充電寶充滿至 100%？這會同步更新雲端的當前電量。', async () => {
+                if(!currentUser) return;
+                await addDoc(colHistory, {
+                    type: 'charge',
+                    endTime: new Date().toISOString(),
+                    timestamp: Date.now()
+                });
+                await setDoc(docBattery, { value: 100 });
+            });
+        };
+
+        window.deleteHistory = function(id) {
+            window.showConfirm('刪除紀錄', '確定要從雲端刪除這條紀錄嗎？無法復原。', async () => {
+                if(!currentUser) return;
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rentalHistory', id));
+            });
+        };
+
+        window.deleteActiveRental = function(id) {
+            window.showConfirm('取消借出', '確定要刪除這筆「借出中」的紀錄嗎？(提示：刪除後如有需要，請點擊頂部面板手動校準當前電量)', async () => {
+                if(!currentUser) return;
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeRentals', id));
+                } catch (err) {
+                    console.error(err);
+                    alert("刪除失敗！");
+                }
+            });
+        };
+
+        document.getElementById('editBatteryForm').onsubmit = async function(e) {
+            e.preventDefault();
+            if(!currentUser) return;
+            const newVal = parseInt(document.getElementById('newBatteryPct').value);
+            if(newVal >= 0 && newVal <= 100) {
+                const btn = e.target.querySelector('button[type="submit"]');
+                btn.innerHTML = '更新中...';
+                await setDoc(docBattery, { value: newVal });
+                btn.innerHTML = '確認更新';
+                window.closeEditBatteryModal();
+            }
+        };
+
+        // --- UI Modal Controls ---
+        window.closeReturnModal = () => document.getElementById('returnModal').classList.add('hidden');
+        window.openEditBatteryModal = () => {
+            document.getElementById('newBatteryPct').value = currentBattery;
+            document.getElementById('editBatteryModal').classList.remove('hidden');
+        };
+        window.closeEditBatteryModal = () => document.getElementById('editBatteryModal').classList.add('hidden');
+
+        let confirmCallback = null;
+        window.showConfirm = (title, msg, callback) => {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-msg').innerText = msg;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        };
+        window.closeConfirmModal = () => document.getElementById('confirmModal').classList.add('hidden');
+        document.getElementById('confirm-btn-ok').onclick = function() {
+            if(confirmCallback) confirmCallback();
+            window.closeConfirmModal();
+        };
+
+        const cableOptions = [
+            { icon: 'fa-bolt', text: 'C to C (快充)' },
+            { icon: 'fa-plug', text: 'C to Lightning' },
+            { icon: 'fa-plug', text: 'A to Lightning' },
+            { icon: 'fa-usb', text: 'A to C' },
+            { icon: 'fa-network-wired', text: '多合一線' },
+            { icon: 'fa-question', text: '未知/不清楚' }
+        ];
+
+        const deviceOptions = [
+            { icon: 'fa-mobile-screen', text: '手機 (iPhone)' },
+            { icon: 'fa-mobile-screen', text: '手機 (Android)' },
+            { icon: 'fa-tablet-screen-button', text: '平板 (iPad)' },
+            { icon: 'fa-tablet-screen-button', text: '平板 (Android)' },
+            { icon: 'fa-laptop', text: '手提電腦' },
+            { icon: 'fa-stopwatch', text: '手錶/耳機 (微電流)' },
+            { icon: 'fa-layer-group', text: '多部裝置' }
+        ];
+
+        window.openSelectModal = function(title, options, currentVal, callbackName) {
+            document.getElementById('select-title').innerText = title;
+            const container = document.getElementById('select-options');
+            
+            container.innerHTML = options.map(opt => `
+                <button type="button" onclick="window.handleSelect('${opt.text}', '${callbackName}')" class="w-full text-left px-4 py-3 rounded-xl mb-1 flex items-center gap-3 transition-colors ${currentVal === opt.text ? 'bg-mi/20 text-mi font-bold border border-mi/30' : 'text-gray-300 hover:bg-gray-800 border border-transparent'}">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center ${currentVal === opt.text ? 'bg-mi/20 text-mi' : 'bg-gray-800 text-gray-400'} shrink-0">
+                        <i class="fa-solid ${opt.icon}"></i>
+                    </div>
+                    <span>${opt.text}</span>
+                    ${currentVal === opt.text ? '<i class="fa-solid fa-check ml-auto text-mi"></i>' : ''}
+                </button>
+            `).join('');
+
+            const modal = document.getElementById('selectModal');
+            const content = document.getElementById('selectModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeSelectModal = function() {
+            const modal = document.getElementById('selectModal');
+            const content = document.getElementById('selectModalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('translate-y-full');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        };
+
+        window.handleSelect = function(value, callbackName) {
+            if(callbackName === 'setCable') window.setCableSelect(value);
+            if(callbackName === 'setDevice') window.setDeviceSelect(value);
+            window.closeSelectModal();
+        };
+
+        window.openCableSelect = () => window.openSelectModal('選擇線材類型', cableOptions, document.getElementById('lendCable').value, 'setCable');
+        window.openDeviceSelect = () => window.openSelectModal('選擇充電裝置', deviceOptions, document.getElementById('lendDevice').value, 'setDevice');
+
+        window.setCableSelect = (val) => {
+            document.getElementById('lendCable').value = val;
+            document.getElementById('btnLendCable').querySelector('span').innerText = val;
+        };
+
+        window.setDeviceSelect = (val) => {
+            document.getElementById('lendDevice').value = val;
+            document.getElementById('btnLendDevice').querySelector('span').innerText = val;
+        };
+
+        function formatTimeOnly(isoString) {
+            try { return isoString.split('T')[1].substring(0, 5); } catch(e) { return '--:--'; }
+        }
+        function formatDateTime(isoString) {
+            try { 
+                const d = new Date(isoString);
+                return `${d.getMonth()+1}月${d.getDate()}日 ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+            } catch(e) { return isoString; }
+        }
+
+    </script>
+</body>
+</html>
