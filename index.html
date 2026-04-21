@@ -670,8 +670,12 @@ service cloud.firestore {<br>
             }, handleDbError);
 
             onSnapshot(docBattery, (docSnap) => {
-                if (docSnap.exists()) currentBattery = docSnap.data().value;
-                else currentBattery = 100;
+                if (docSnap.exists()) {
+                    let val = Number(docSnap.data().value);
+                    currentBattery = isNaN(val) ? 100 : val; // 預防雲端出現 NaN
+                } else {
+                    currentBattery = 100;
+                }
                 updateDashboard();
                 flashSyncIndicator();
             }, handleDbError);
@@ -864,15 +868,23 @@ service cloud.firestore {<br>
 
         function calculateLiveStats(rental) {
             const now = new Date();
-            const baseTime = rental.lastCalcTime ? new Date(rental.lastCalcTime) : new Date(rental.startTime);
-            const basePct = rental.lastCalcPct !== undefined ? rental.lastCalcPct : rental.startPct;
+            const baseTimeStr = rental.lastCalcTime || rental.startTime;
+            let baseTime = now;
+            if (baseTimeStr) {
+                baseTime = new Date(baseTimeStr);
+                if (isNaN(baseTime.getTime())) baseTime = now; // 預防時間格式錯誤
+            }
+
+            let basePct = rental.lastCalcPct !== undefined ? rental.lastCalcPct : rental.startPct;
+            basePct = Number(basePct);
+            if (isNaN(basePct)) basePct = currentBattery; // 預防電量紀錄為 NaN
 
             let diffMins = (now - baseTime) / 60000;
-            if(diffMins < 0) diffMins = 0; 
+            if(diffMins < 0 || isNaN(diffMins)) diffMins = 0; 
 
             // 計算基礎設備耗電 (若有雙裝置則相加)
             let baseRate = DRAIN_RATES[rental.device] || 0.05;
-            if (rental.device2) {
+            if (rental.device2 && rental.device2 !== '未知 (訪客自助)' && rental.device2 !== '') {
                 baseRate += (DRAIN_RATES[rental.device2] || 0.05);
             }
 
@@ -885,11 +897,16 @@ service cloud.firestore {<br>
             const consumed = diffMins * finalRate;
             let currentEst = basePct - consumed;
             if(currentEst < 0) currentEst = 0;
+            if(isNaN(currentEst)) currentEst = 0; // 最終防線
             
             // 25000mAh，1% = 250mAh。 mAh/min = 速率 * 250
-            const mAhPerMin = Math.round(finalRate * 250);
+            let mAhPerMin = Math.round(finalRate * 250);
+            if(isNaN(mAhPerMin)) mAhPerMin = 0;
 
-            return { estPct: currentEst, consumed: rental.startPct - currentEst, diffMins: diffMins, rate: finalRate, mAhPerMin: mAhPerMin };
+            let startPctSafe = Number(rental.startPct);
+            if(isNaN(startPctSafe)) startPctSafe = currentBattery;
+
+            return { estPct: currentEst, consumed: startPctSafe - currentEst, diffMins: diffMins, rate: finalRate, mAhPerMin: mAhPerMin };
         }
 
         function renderActiveRentals() {
@@ -1097,7 +1114,8 @@ service cloud.firestore {<br>
                 const protocol = document.getElementById('lendProtocol').value;
                 const cable = document.getElementById('lendCable').value;
                 const device = document.getElementById('lendDevice').value;
-                const startPct = parseInt(document.getElementById('lendPct').value);
+                let startPct = parseInt(document.getElementById('lendPct').value);
+                if(isNaN(startPct)) startPct = currentBattery; // 防呆
                 const time = document.getElementById('lendTime').value;
                 
                 const today = new Date();
@@ -1138,7 +1156,8 @@ service cloud.firestore {<br>
             const btn = e.target.querySelector('button[type="submit"]');
             const originalHTML = btn.innerHTML;
 
-            const startPct = parseInt(document.getElementById('guestLendPct').value);
+            let startPct = parseInt(document.getElementById('guestLendPct').value);
+            if(isNaN(startPct)) startPct = currentBattery; // 防呆
 
             if (Math.abs(startPct - currentBattery) > 15) {
                 window.showConfirm('輸入電量偏差過大', `為確保監測準確，請輸入與實機屏幕相符的真實電量。\n\n系統預估當前約為 ${currentBattery}%，您輸入的數值誤差不得超過 ±15%。`, null);
@@ -1275,9 +1294,11 @@ service cloud.firestore {<br>
                     updateData.user = document.getElementById('editRentalUser').value;
                 }
 
-                const newEstPct = parseInt(document.getElementById('editRentalPct').value);
+                let newEstPct = parseInt(document.getElementById('editRentalPct').value);
+                if (isNaN(newEstPct)) newEstPct = currentStats.estPct; // 防呆
+                
                 let diffMins = (new Date() - new Date(document.getElementById('editRentalStartTime').value)) / 60000;
-                if(diffMins < 0) diffMins = 0;
+                if(diffMins < 0 || isNaN(diffMins)) diffMins = 0;
                 
                 let newRate = DRAIN_RATES[newDevice] || 0.05;
                 if (updateData.device2) newRate += (DRAIN_RATES[updateData.device2] || 0.05);
@@ -1333,8 +1354,14 @@ service cloud.firestore {<br>
             e.preventDefault();
             if(!currentUser) return;
 
-            const startPct = parseInt(document.getElementById('returnStartPct').value);
-            const endPct = parseInt(document.getElementById('returnPct').value);
+            let startPct = parseInt(document.getElementById('returnStartPct').value);
+            if(isNaN(startPct)) startPct = 100; // 防呆
+            let endPct = parseInt(document.getElementById('returnPct').value);
+            
+            if(isNaN(endPct)) {
+                alert('請輸入有效的歸還電量數字！'); 
+                return;
+            }
             
             if(endPct > startPct) {
                 alert('歸還電量不能大於借出電量。'); return;
@@ -1530,7 +1557,7 @@ service cloud.firestore {<br>
             e.preventDefault();
             if(!currentUser || !isAdmin) return;
             const newVal = parseInt(document.getElementById('newBatteryPct').value);
-            if(newVal >= 0 && newVal <= 100) {
+            if(!isNaN(newVal) && newVal >= 0 && newVal <= 100) {
                 await setDoc(docBattery, { value: newVal });
                 window.closeEditBatteryModal();
             }
