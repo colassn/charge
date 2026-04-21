@@ -298,6 +298,45 @@
         </div>
     </main>
 
+    <!-- Modals (Refined Design) -->
+
+    <!-- Dynamic Thank You Modal for Guest -->
+    <div id="thankYouModal" class="fixed inset-0 z-[80] hidden flex items-center justify-center px-4 bg-black/90 backdrop-blur-2xl transition-all duration-500 opacity-0">
+        <div class="relative text-center w-full max-w-md transform scale-90 transition-transform duration-500" id="thankYouContent">
+            <!-- Glowing background effect -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-green-500/20 rounded-full blur-[80px] animate-pulse pointer-events-none"></div>
+
+            <div class="relative z-10">
+                <div class="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(74,222,128,0.5)] animate-bounce">
+                    <i class="fa-solid fa-check text-5xl text-white"></i>
+                </div>
+                <h2 class="text-4xl font-black text-white mb-4 tracking-tight drop-shadow-lg">登記成功！</h2>
+                
+                <div class="bg-card/80 border border-white/10 rounded-3xl p-6 mb-8 shadow-2xl backdrop-blur-md">
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed mb-5">
+                        多謝合作！系統已開始為您實時監測電量。<br>請記得喺電量跌至 <span class="text-red-400 font-bold bg-red-400/10 px-1 rounded">30%</span> 前歸還結算。
+                    </p>
+                    
+                    <div class="bg-gradient-to-r from-mi/20 to-orange-500/20 border border-mi/30 rounded-2xl p-5 relative overflow-hidden">
+                        <i class="fa-solid fa-qrcode absolute -right-2 -top-2 text-6xl text-white/5 rotate-12"></i>
+                        <div class="relative z-10">
+                            <div class="flex items-center justify-center gap-2 text-mi font-black text-base mb-1">
+                                <i class="fa-solid fa-hand-holding-hand"></i> 傳遞給下一位？
+                            </div>
+                            <p class="text-white text-xs sm:text-sm font-medium">
+                                如果將充電寶轉借畀下一個朋友，<br>請務必提佢 <strong class="text-mi underline decoration-mi/50 underline-offset-4">重新掃描 QR Code 登記</strong> 呀！
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="closeThankYouModal()" class="bg-white text-black font-black text-lg px-12 py-4 rounded-full hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Active Rental Modal -->
     <div id="editRentalModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center px-4 bg-black/80 backdrop-blur-xl transition-all duration-300 opacity-0 overflow-y-auto py-10">
         <div class="bg-card border border-white/10 rounded-[2rem] p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300 my-auto" id="editRentalContent">
@@ -573,6 +612,23 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
+        window.openThankYouModal = function() {
+            const modal = document.getElementById('thankYouModal');
+            const content = document.getElementById('thankYouContent');
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; // trigger reflow
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-90');
+        };
+
+        window.closeThankYouModal = function() {
+            const modal = document.getElementById('thankYouModal');
+            const content = document.getElementById('thankYouContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-90');
+            setTimeout(() => modal.classList.add('hidden'), 500);
+        };
+
         window.toggleDevice2 = function(mode) {
             const btn = document.getElementById(`btnAddDevice2_${mode}`);
             const container = document.getElementById(`device2Container_${mode}`);
@@ -672,7 +728,7 @@ service cloud.firestore {<br>
             onSnapshot(docBattery, (docSnap) => {
                 if (docSnap.exists()) {
                     let val = Number(docSnap.data().value);
-                    currentBattery = isNaN(val) ? 100 : val; // 預防雲端出現 NaN
+                    currentBattery = isNaN(val) ? 100 : val; 
                 } else {
                     currentBattery = 100;
                 }
@@ -771,7 +827,6 @@ service cloud.firestore {<br>
                 if(btnEditBattery) btnEditBattery.classList.remove('hidden');
                 if(editDevice2ContainerWrapper) editDevice2ContainerWrapper.classList.remove('hidden');
                 
-                // 顯示宣傳及歷史區塊，並恢復原有的上下留白
                 if(heroPromoText) heroPromoText.classList.remove('hidden');
                 if(heroPromoImg) heroPromoImg.classList.remove('hidden');
                 if(historySectionWrapper) historySectionWrapper.classList.remove('hidden');
@@ -785,7 +840,6 @@ service cloud.firestore {<br>
                 if(btnEditBattery) btnEditBattery.classList.add('hidden');
                 if(editDevice2ContainerWrapper) editDevice2ContainerWrapper.classList.add('hidden');
                 
-                // 隱藏宣傳及歷史區塊，稍微縮小頂部留白令版面更緊湊
                 if(heroPromoText) heroPromoText.classList.add('hidden');
                 if(heroPromoImg) heroPromoImg.classList.add('hidden');
                 if(historySectionWrapper) historySectionWrapper.classList.add('hidden');
@@ -872,24 +926,22 @@ service cloud.firestore {<br>
             let baseTime = now;
             if (baseTimeStr) {
                 baseTime = new Date(baseTimeStr);
-                if (isNaN(baseTime.getTime())) baseTime = now; // 預防時間格式錯誤
+                if (isNaN(baseTime.getTime())) baseTime = now; 
             }
 
             let basePct = rental.lastCalcPct !== undefined ? rental.lastCalcPct : rental.startPct;
             basePct = Number(basePct);
-            if (isNaN(basePct)) basePct = currentBattery; // 預防電量紀錄為 NaN
+            if (isNaN(basePct)) basePct = currentBattery; 
 
             let diffMins = (now - baseTime) / 60000;
             if(diffMins < 0 || isNaN(diffMins)) diffMins = 0; 
 
-            // 計算基礎設備耗電 (若有雙裝置則相加)
             let baseRate = DRAIN_RATES[rental.device] || 0.05;
             if (rental.device2 && rental.device2 !== '未知 (訪客自助)' && rental.device2 !== '') {
                 baseRate += (DRAIN_RATES[rental.device2] || 0.05);
             }
 
             let finalRate = baseRate;
-            // 如果管理員有指定協議，則取協議速度與設備總和速度的最大值，確保不會低估
             if (rental.protocol && PROTOCOL_RATES[rental.protocol] !== null && PROTOCOL_RATES[rental.protocol] !== undefined) {
                 finalRate = Math.max(PROTOCOL_RATES[rental.protocol], baseRate);
             }
@@ -897,9 +949,8 @@ service cloud.firestore {<br>
             const consumed = diffMins * finalRate;
             let currentEst = basePct - consumed;
             if(currentEst < 0) currentEst = 0;
-            if(isNaN(currentEst)) currentEst = 0; // 最終防線
+            if(isNaN(currentEst)) currentEst = 0; 
             
-            // 25000mAh，1% = 250mAh。 mAh/min = 速率 * 250
             let mAhPerMin = Math.round(finalRate * 250);
             if(isNaN(mAhPerMin)) mAhPerMin = 0;
 
@@ -942,7 +993,6 @@ service cloud.firestore {<br>
                 const changeHtml = latestChange ? `<div class="text-gray-400 w-max rounded flex items-center gap-1"><i class="fa-solid fa-code-merge text-[8px]"></i> ${formatTimeOnly(latestChange.time)} 更改</div>` : '';
                 const protoTag = (r.protocol && r.protocol !== '未知 (依賴裝置推算)') ? `<span class="bg-mi/20 text-mi px-1.5 py-0.5 rounded text-[9px] font-bold border border-mi/30"><i class="fa-solid fa-bolt mr-1"></i>${r.protocol}</span>` : '';
                 
-                // 組合雙裝置顯示文字
                 let deviceString = r.device;
                 if (r.device2) deviceString += ` <span class="text-gray-600">&</span> ${r.device2}`;
 
@@ -1106,6 +1156,12 @@ service cloud.firestore {<br>
             e.preventDefault();
             if(!currentUser || !isAdmin) return;
             
+            // 加入單一租借鎖定檢查
+            if (activeRentals.length >= 1) {
+                window.showConfirm('無法登記', '目前已有設備正在借出中！\n請先歸還當前設備，然後再進行新的登記。', null);
+                return;
+            }
+
             const btn = e.target.querySelector('button[type="submit"]');
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 授權中...';
 
@@ -1115,7 +1171,7 @@ service cloud.firestore {<br>
                 const cable = document.getElementById('lendCable').value;
                 const device = document.getElementById('lendDevice').value;
                 let startPct = parseInt(document.getElementById('lendPct').value);
-                if(isNaN(startPct)) startPct = currentBattery; // 防呆
+                if(isNaN(startPct)) startPct = currentBattery; 
                 const time = document.getElementById('lendTime').value;
                 
                 const today = new Date();
@@ -1153,11 +1209,17 @@ service cloud.firestore {<br>
             e.preventDefault();
             if(!currentUser) return;
             
+            // 加入單一租借鎖定檢查
+            if (activeRentals.length >= 1) {
+                window.showConfirm('系統被佔用', '充電寶目前正由他人使用中！\n請先點擊右側的「歸還結算」完成上一筆紀錄後，再進行新的登記。', null);
+                return;
+            }
+
             const btn = e.target.querySelector('button[type="submit"]');
             const originalHTML = btn.innerHTML;
 
             let startPct = parseInt(document.getElementById('guestLendPct').value);
-            if(isNaN(startPct)) startPct = currentBattery; // 防呆
+            if(isNaN(startPct)) startPct = currentBattery; 
 
             if (Math.abs(startPct - currentBattery) > 15) {
                 window.showConfirm('輸入電量偏差過大', `為確保監測準確，請輸入與實機屏幕相符的真實電量。\n\n系統預估當前約為 ${currentBattery}%，您輸入的數值誤差不得超過 ±15%。`, null);
@@ -1185,10 +1247,13 @@ service cloud.firestore {<br>
                 }
 
                 await addDoc(colActive, payload);
-
                 await setDoc(docBattery, { value: startPct });
 
                 if(!device2Container.classList.contains('hidden')) window.toggleDevice2('guest');
+                
+                // Show dynamic thank you modal
+                window.openThankYouModal();
+
             } catch (err) {
                 console.error(err);
                 alert("儲存失敗！");
@@ -1211,7 +1276,6 @@ service cloud.firestore {<br>
             window.setEditCableSelect(rental.cable || 'C to C (快充)');
             window.setEditDeviceSelect(rental.device || '手機 (iPhone)');
 
-            // 處理雙裝置顯示狀態
             const device2Container = document.getElementById('device2Container_edit');
             const btnAddDevice2 = document.getElementById('btnAddDevice2_edit');
             if (rental.device2) {
@@ -1280,7 +1344,6 @@ service cloud.firestore {<br>
                     lastCalcPct: currentStats.estPct
                 };
 
-                // 處理副裝置資料寫入
                 const device2Container = document.getElementById('device2Container_edit');
                 if (!device2Container.classList.contains('hidden')) {
                     updateData.cable2 = document.getElementById('editRentalCable2').value;
@@ -1295,7 +1358,7 @@ service cloud.firestore {<br>
                 }
 
                 let newEstPct = parseInt(document.getElementById('editRentalPct').value);
-                if (isNaN(newEstPct)) newEstPct = currentStats.estPct; // 防呆
+                if (isNaN(newEstPct)) newEstPct = currentStats.estPct; 
                 
                 let diffMins = (new Date() - new Date(document.getElementById('editRentalStartTime').value)) / 60000;
                 if(diffMins < 0 || isNaN(diffMins)) diffMins = 0;
@@ -1355,7 +1418,7 @@ service cloud.firestore {<br>
             if(!currentUser) return;
 
             let startPct = parseInt(document.getElementById('returnStartPct').value);
-            if(isNaN(startPct)) startPct = 100; // 防呆
+            if(isNaN(startPct)) startPct = 100; 
             let endPct = parseInt(document.getElementById('returnPct').value);
             
             if(isNaN(endPct)) {
@@ -1580,7 +1643,6 @@ service cloud.firestore {<br>
 
             try {
                 const text = document.getElementById('rulesTextarea').value;
-                // 去除可能手動輸入的數字序號，確保系統排版乾淨
                 const newRules = text.split('\n').map(r => r.replace(/^\d+[\.\s、]+/, '').trim()).filter(r => r !== '');
                 await setDoc(docRules, { rules: newRules });
                 window.closeEditRulesModal();
